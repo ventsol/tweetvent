@@ -343,7 +343,7 @@ class DiscordBot:
                 interval = 30  # default 30 seconds
 
             # Wait for the interval, but check stop event every second
-            for _ in range(interval):
+                for _ in range(int(interval)):
                 if self._stop_event.is_set():
                     break
                 time.sleep(1)
