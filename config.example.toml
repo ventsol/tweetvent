@@ -1,0 +1,26 @@
+[twitter]
+accounts = [ "username1", "username2",]
+
+[discord]
+webhook_url = "https://discord.com/api/webhooks/your_webhook_url_here"
+
+[bot]
+poll_interval_minutes = 5
+nitter_instance = "nitter.net"
+
+[auth]
+# Grab these from your browser DevTools (Application > Cookies > x.com)
+auth_token = "your_auth_token_here"
+ct0 = "your_ct0_here"
+
+[colors]
+username1 = "#1DA1F2"
+username2 = "#FF4500"
+
+[filters.include]
+username1 = ""
+username2 = ""
+
+[filters.exclude]
+username1 = ""
+username2 = ""

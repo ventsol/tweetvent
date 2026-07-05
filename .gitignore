@@ -1,0 +1,22 @@
+# Sensitive config (API keys, auth tokens, webhook URLs)
+config.toml
+last_tweet.json
+recent_tweets.json
+cookies.json
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Test/debug files
+test_*.py
+debug_*.py
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Editor
+.vscode/
+.idea/

@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TweetVent v0.1.0</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f1a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 200px; min-height: 100vh; background: #12121f;
+            border-right: 1px solid #2a2a3a; padding: 0; flex-shrink: 0;
+            display: flex; flex-direction: column;
+        }
+        .sidebar-header {
+            padding: 20px 16px; border-bottom: 1px solid #2a2a3a;
+            font-size: 15px; font-weight: 700; color: #1da1f2;
+        }
+        .sidebar-header span { color: #fff; }
+        .nav-item {
+            padding: 12px 16px; cursor: pointer; font-size: 13px;
+            color: #888; border-left: 3px solid transparent;
+            display: flex; align-items: center; gap: 8px;
+            transition: all 0.15s;
+        }
+        .nav-item:hover { color: #ccc; background: #1a1a2e; }
+        .nav-item.active { color: #1da1f2; border-left-color: #1da1f2; background: #1a1a2e; font-weight: 600; }
+        .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+
+        /* Main */
+        .main {
+            flex: 1; padding: 24px; overflow-y: auto; max-height: 100vh;
+        }
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* Cards */
+        .card {
+            background: #1a1a2e; border-radius: 12px; padding: 20px;
+            margin-bottom: 16px; border: 1px solid #2a2a3a;
+        }
+        .card h2 { font-size: 14px; margin-bottom: 14px; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Controls */
+        .btn {
+            padding: 7px 18px; border: none; border-radius: 8px; cursor: pointer;
+            font-size: 13px; font-weight: 600; transition: all 0.2s;
+        }
+        .btn:hover { transform: translateY(-1px); opacity: 0.9; }
+        .btn-start { background: #22c55e; color: #000; }
+        .btn-stop { background: #ef4444; color: #fff; }
+        .btn-primary { background: #1da1f2; color: #fff; }
+        .btn-danger { background: #dc2626; color: #fff; padding: 4px 10px; font-size: 12px; }
+        .btn-small { background: #2a2a3a; color: #ccc; padding: 4px 12px; font-size: 12px; }
+        .btn-small:hover { background: #3a3a4a; }
+        .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+        /* Status grid */
+        .info-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+        }
+        .info-item {
+            background: #232340; padding: 12px; border-radius: 8px;
+        }
+        .info-item .label { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.3px; }
+        .info-item .value { font-size: 14px; color: #fff; margin-top: 3px; }
+        .status-badge {
+            display:inline-block; padding: 3px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;
+        }
+        .status-running { background: #1a3a2a; color: #4ade80; }
+        .status-stopped { background: #3a1a1a; color: #f87171; }
+        .status-stopping { background: #3a3a1a; color: #fbbf24; }
+
+        /* Accounts */
+        .account-item {
+            background: #232340; border-radius: 8px; margin-bottom: 6px; padding: 10px 12px;
+        }
+        .account-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+        }
+        .account-info { display: flex; align-items: center; gap: 8px; }
+        .name-badge { font-weight: 700; font-size: 12px; padding: 2px 8px; border-radius: 10px; }
+        .color-picker { width: 22px; height: 18px; border: none; border-radius: 3px; cursor: pointer; background: transparent; padding: 0; }
+        .account-filters { display: flex; gap: 8px; }
+        .filter-group { flex: 1; display: flex; align-items: center; gap: 4px; }
+        .filter-label { font-size: 9px; text-transform: uppercase; font-weight: 600; white-space: nowrap; }
+        .filter-label.inc { color: #4ade80; }
+        .filter-label.exc { color: #f87171; }
+        .filter-input {
+            flex: 1; padding: 4px 6px; border-radius: 5px; border: 1px solid #2a2a3a;
+            background: #1a1a2e; color: #ccc; font-size: 11px; outline: none; min-width: 0;
+        }
+        .filter-input:focus { border-color: #1da1f2; }
+        .add-account { display: flex; gap: 6px; margin-top: 8px; }
+        .add-account input {
+            flex: 1; padding: 6px 12px; border-radius: 6px; border: 1px solid #2a2a3a;
+            background: #232340; color: #fff; font-size: 13px; outline: none;
+        }
+        .add-account input:focus { border-color: #1da1f2; }
+
+        /* Settings rows */
+        .settings-row {
+            display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 8px;
+        }
+        .settings-row label { font-size: 12px; color: #999; min-width: 100px; }
+        .settings-row input {
+            padding: 5px 8px; border-radius: 5px; border: 1px solid #2a2a3a;
+            background: #232340; color: #fff; font-size: 12px; outline: none;
+        }
+        .settings-row input:focus { border-color: #1da1f2; }
+
+        /* Logs */
+        .log-box {
+            background: #0a0a14; border-radius: 8px; padding: 10px;
+            font-family: 'Courier New', monospace; font-size: 11px;
+            max-height: 280px; overflow-y: auto; line-height: 1.5;
+        }
+        .log-box div { color: #888; }
+
+        /* Tweets */
+        .tweet-item {
+            padding: 8px 12px; background: #232340; border-radius: 6px; margin-bottom: 4px;
+            border-left: 3px solid #1da1f2;
+        }
+        .tweet-item .meta { font-size: 10px; color: #666; }
+        .tweet-item .user { color: #1da1f2; font-weight: 600; }
+        .tweet-item .text { margin-top: 3px; color: #ccc; font-size: 12px; }
+        .tweet-item a { color: #60a5fa; text-decoration: none; font-size: 11px; }
+        .tweet-item a:hover { text-decoration: underline; }
+
+        .empty-state { color: #555; text-align: center; padding: 14px; font-size: 13px; }
+
+        /* Cookie instructions table */
+        .cookie-table { margin: 4px 0; border-collapse: collapse; font-size: 11px; }
+        .cookie-table th, .cookie-table td { padding: 4px 8px; border: 1px solid #2a2a3a; text-align: left; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #0a0a14; }
+        ::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 3px; }
+
+        @media (max-width: 700px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; min-height: auto; flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid #2a2a3a; }
+            .sidebar-header { display: none; }
+            .nav-item { border-left: none; border-bottom: 3px solid transparent; white-space: nowrap; padding: 10px 12px; }
+            .nav-item.active { border-left: none; border-bottom-color: #1da1f2; }
+            .main { max-height: none; padding: 16px; }
+            .info-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">TweetVent <span style="color:#888;font-size:10px;">v0.1.0</span></div>
+        <div class="nav-item active" onclick="showPage('dashboard')"><span class="icon">&#9776;</span> Dashboard</div>
+        <div class="nav-item" onclick="showPage('accounts')"><span class="icon">@</span> Accounts</div>
+        <div class="nav-item" onclick="showPage('settings')"><span class="icon">&#9881;</span> Settings</div>
+        <div class="nav-item" onclick="showPage('logs')"><span class="icon">&#9776;</span> Logs</div>
+        <div class="nav-item" onclick="showPage('recent')"><span class="icon">&#9991;</span> Recent</div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+
+        <!-- Dashboard Page -->
+        <div class="page active" id="page-dashboard">
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                    <h2 style="margin:0;">Dashboard</h2>
+                    <span class="status-badge" id="statusBadge">Loading...</span>
+                </div>
+                <div class="controls" style="margin-bottom:14px;">
+                    <button class="btn btn-start" id="btnStart" onclick="startBot()">Start</button>
+                    <button class="btn btn-stop" id="btnStop" onclick="stopBot()">Stop</button>
+                    <button class="btn btn-primary" onclick="checkNow()">Check Now</button>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item"><div class="label">Bot</div><div class="value" id="statusText">-</div></div>
+                    <div class="info-item"><div class="label">Last Check</div><div class="value" id="lastCheck">-</div></div>
+                    <div class="info-item"><div class="label">Result</div><div class="value" id="lastResult">-</div></div>
+                    <div class="info-item"><div class="label">Webhook</div><div class="value" id="webhookStatus">-</div></div>
+                    <div class="info-item"><div class="label">Accounts</div><div class="value" id="accountCount">-</div></div>
+                    <div class="info-item"><div class="label">Cookies</div><div class="value" id="cookieStatus">-</div></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Account Activity <span style="font-size:11px;text-transform:none;letter-spacing:0;font-weight:400;color:#666;">session totals</span></h2>
+                <div id="accountStats"><div class="empty-state">No activity yet</div></div>
+            </div>
+        </div>
+
+        <!-- Accounts Page -->
+        <div class="page" id="page-accounts">
+            <div class="card">
+                <h2>Watched Accounts</h2>
+                <div id="accountList"></div>
+                <div class="add-account">
+                    <input type="text" id="newAccount" placeholder="Twitter username (without @)" onkeydown="if(event.key==='Enter')addAccount()">
+                    <button class="btn btn-primary" onclick="addAccount()">Add</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Page -->
+        <div class="page" id="page-settings">
+            <div class="card">
+                <h2>General</h2>
+                <div class="settings-row">
+                    <label>Poll interval:</label>
+                    <input type="number" id="intervalInput" min="1" max="60" value="5" style="width:60px;">
+                    <span style="font-size:11px;color:#666;">minutes</span>
+                    <button class="btn btn-small" onclick="setInterval()">Set</button>
+                </div>
+                <div class="settings-row">
+                    <label>Nitter instance:</label>
+                    <input type="text" id="nitterInput" value="nitter.net" style="width:160px;">
+                    <button class="btn btn-small" onclick="setNitter()">Set</button>
+                </div>
+                <div class="settings-row">
+                    <label>Discord webhook:</label>
+                    <input type="text" id="webhookInput" placeholder="https://discord.com/api/webhooks/..." style="flex:1;min-width:150px;font-size:11px;">
+                    <button class="btn btn-small" onclick="setWebhook()">Set</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Twitter Auth <span id="cookieHealth" style="font-size:11px;text-transform:none;letter-spacing:0;font-weight:400;color:#888;">checking...</span></h2>
+                <div style="display:flex;flex-direction:column;gap:6px;">
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <span style="font-size:11px;color:#999;min-width:70px;">auth_token:</span>
+                        <input type="text" id="authTokenInput" style="flex:1;font-family:monospace;font-size:10px;padding:4px 6px;border-radius:5px;border:1px solid #2a2a3a;background:#232340;color:#fff;outline:none;">
+                    </div>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <span style="font-size:11px;color:#999;min-width:70px;">ct0:</span>
+                        <input type="text" id="ct0Input" style="flex:1;font-family:monospace;font-size:10px;padding:4px 6px;border-radius:5px;border:1px solid #2a2a3a;background:#232340;color:#fff;outline:none;">
+                    </div>
+                    <div style="display:flex;gap:6px;align-items:center;margin-top:4px;">
+                        <button class="btn btn-small" onclick="saveCookies()">Save Cookies</button>
+                        <button class="btn btn-small" onclick="toggleInstructions()">How to get cookies</button>
+                    </div>
+                </div>
+                <div id="cookieInstructions" style="display:none;margin-top:10px;padding:12px;background:#1a1a2e;border-radius:8px;font-size:12px;line-height:1.6;color:#aaa;">
+                    <b style="color:#fff;">How to get your Twitter cookies:</b>
+                    <ol style="margin:6px 0 0 16px;padding:0;">
+                        <li>Open <b>twitter.com</b> or <b>x.com</b> and log in</li>
+                        <li>Press <b>F12</b> to open DevTools</li>
+                        <li>Go to <b>Application</b> tab (Chrome) or <b>Storage</b> tab (Firefox)</li>
+                        <li>Click <b>Cookies</b> on the left, then <b>x.com</b></li>
+                        <li>Copy the <b>Value</b> fields for <code>auth_token</code> and <code>ct0</code></li>
+                        <li>Paste them above and click <b>Save Cookies</b></li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logs Page -->
+        <div class="page" id="page-logs">
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                    <h2 style="margin:0;">Logs</h2>
+                    <div style="font-size:11px;color:#666;">
+                        Auto-refresh <span id="lastUpdated">-</span>
+                        <button class="btn btn-small" onclick="pollAll();return false;" style="margin-left:6px;">Refresh</button>
+                    </div>
+                </div>
+                <div class="log-box" id="logBox"><div>Waiting for logs...</div></div>
+            </div>
+        </div>
+
+        <!-- Recent Page -->
+        <div class="page" id="page-recent">
+            <div class="card">
+                <h2>Recent Tweets Posted</h2>
+                <div id="recentTweets"><div class="empty-state">No tweets posted yet</div></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let pollTimer = null;
+        let currentPage = 'dashboard';
+
+        function showPage(name) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('page-' + name).classList.add('active');
+            document.querySelector('.nav-item[onclick*="' + name + '"]').classList.add('active');
+            currentPage = name;
+        }
+
+        async function getJSON(url) {
+            const sep = url.includes('?') ? '&' : '?';
+            const r = await fetch(url + sep + '_t=' + Date.now());
+            return r.json();
+        }
+
+        async function postJSON(url, data) {
+            const r = await fetch(url, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data || {}),
+            });
+            return r.json();
+        }
+
+        // ── Dashboard ──
+        async function updateStatus() {
+            try {
+                const data = await getJSON('/status');
+
+                const badge = document.getElementById('statusBadge');
+                badge.textContent = data.is_running ? 'Online' : 'Offline';
+                badge.className = 'status-badge status-' + data.status;
+
+                document.getElementById('statusText').textContent = data.is_running ? 'Online' : 'Offline';
+                document.getElementById('lastCheck').textContent = data.last_check || '-';
+                document.getElementById('lastResult').textContent = data.last_result || '-';
+                document.getElementById('webhookStatus').textContent = data.webhook_set ? 'Connected' : 'Not set';
+                document.getElementById('accountCount').textContent = data.accounts.length + ' accounts';
+
+                // Account stats
+                const statsEl = document.getElementById('accountStats');
+                const stats = data.account_stats || {};
+                if (Object.keys(stats).length === 0) {
+                    statsEl.innerHTML = '<div class="empty-state">No activity yet</div>';
+                } else {
+                    statsEl.innerHTML = data.accounts.map(function(u) {
+                        const count = stats[u] || 0;
+                        const dot = count > 0 ? '<span style="color:#4ade80;font-size:16px;">&#9679;</span>' : '<span style="color:#555;font-size:16px;">&#9679;</span>';
+                        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#232340;border-radius:6px;margin-bottom:4px;">' +
+                            '<span>' + dot + ' <b style="color:#1da1f2;">@' + u + '</b></span>' +
+                            '<span style="color:#888;font-size:13px;">' + count + ' tweet' + (count !== 1 ? 's' : '') + '</span>' +
+                            '</div>';
+                    }).join('');
+                }
+
+                const cs = document.getElementById('cookieStatus');
+                if (data.auth_token) {
+                    cs.textContent = data.cookie_healthy ? 'Healthy' : 'Expired';
+                    cs.style.color = data.cookie_healthy ? '#4ade80' : '#f87171';
+                } else {
+                    cs.textContent = 'Not set';
+                    cs.style.color = '#fbbf24';
+                }
+
+                document.getElementById('btnStart').style.display = data.is_running ? 'none' : 'inline-block';
+                document.getElementById('btnStop').style.display = data.is_running ? 'inline-block' : 'none';
+
+                // Accounts page
+                const list = document.getElementById('accountList');
+                if (data.accounts.length === 0) {
+                    list.innerHTML = '<div class="empty-state">No accounts added yet</div>';
+                } else {
+                    list.innerHTML = data.accounts.map(u => {
+                        const c = data.colors && data.colors[u] ? data.colors[u] : '#1DA1F2';
+                        const inc = data.filters && data.filters.include && data.filters.include[u] || '';
+                        const exc = data.filters && data.filters.exclude && data.filters.exclude[u] || '';
+                        return '<div class="account-item">' +
+                            '<div class="account-header">' +
+                            '<div class="account-info">' +
+                            '<span class="name-badge" style="background:' + c + ';color:#000;">@' + u + '</span>' +
+                            '<input type="color" value="' + c + '" onchange="setColor(\'' + u + '\', this.value)" class="color-picker">' +
+                            '</div>' +
+                            '<button class="btn btn-danger btn-sm" onclick="removeAccount(\'' + u + '\')">Remove</button>' +
+                            '</div>' +
+                            '<div class="account-filters">' +
+                            '<div class="filter-group"><span class="filter-label inc">In</span>' +
+                            '<input type="text" value="' + escapeHtml(inc) + '" placeholder="keywords..." class="filter-input inc" onchange="setFilters(\'' + u + '\',this.value,this.parentElement.nextElementSibling.querySelector(\'input\').value)">' +
+                            '</div>' +
+                            '<div class="filter-group"><span class="filter-label exc">Ex</span>' +
+                            '<input type="text" value="' + escapeHtml(exc) + '" placeholder="keywords..." class="filter-input exc" onchange="setFilters(\'' + u + '\',this.parentElement.previousElementSibling.querySelector(\'input\').value,this.value)">' +
+                            '</div>' +
+                            '</div></div>';
+                    }).join('');
+                }
+
+                // Settings page
+                document.getElementById('intervalInput').value = data.poll_interval;
+                document.getElementById('nitterInput').value = data.nitter_instance;
+                document.getElementById('webhookInput').value = data.webhook_set ? '(set)' : '(not set)';
+
+                // Cookie health
+                const chEl = document.getElementById('cookieHealth');
+                if (data.auth_token) {
+                    const h = data.cookie_healthy;
+                    chEl.textContent = h ? 'Healthy' : 'Expired';
+                    chEl.style.color = h ? '#4ade80' : '#f87171';
+                    document.getElementById('authTokenInput').value = data.auth_token.slice(0, 20) + '...';
+                    document.getElementById('ct0Input').value = data.ct0.slice(0, 20) + '...';
+                } else {
+                    chEl.textContent = 'Not configured';
+                    chEl.style.color = '#fbbf24';
+                }
+            } catch(e) {
+                console.log('Status fetch failed:', e);
+            }
+        }
+
+        // ── Logs & Recent ──
+        async function updateLogs() {
+            try {
+                const logs = await getJSON('/logs');
+                const box = document.getElementById('logBox');
+                box.innerHTML = logs.map(l => '<div>' + l + '</div>').join('');
+                box.scrollTop = box.scrollHeight;
+            } catch(e) {}
+        }
+
+        async function updateRecent() {
+            try {
+                const tweets = await getJSON('/recent');
+                const container = document.getElementById('recentTweets');
+                if (tweets.length === 0) {
+                    container.innerHTML = '<div class="empty-state">No tweets posted yet</div>';
+                } else {
+                    container.innerHTML = tweets.map(t =>
+                        '<div class="tweet-item">' +
+                        '<div class="meta"><span class="user">@' + t.username + '</span> &middot; ' + t.time + '</div>' +
+                        '<div class="text">' + escapeHtml(t.text) + '</div>' +
+                        '<a href="' + t.url + '" target="_blank">View on X</a>' +
+                        '</div>'
+                    ).join('');
+                }
+            } catch(e) {}
+        }
+
+        // ── Actions ──
+        async function startBot() { await postJSON('/start'); await updateStatus(); }
+        async function stopBot() { await postJSON('/stop'); await updateStatus(); }
+        async function checkNow() { await postJSON('/check_now'); setTimeout(updateStatus, 1000); }
+
+        async function addAccount() {
+            const input = document.getElementById('newAccount');
+            const username = input.value.trim();
+            if (!username) return;
+            const result = await postJSON('/add_account', { username });
+            if (!result.success) { alert(result.error); }
+            else { input.value = ''; await updateStatus(); }
+        }
+
+        async function removeAccount(username) {
+            if (!confirm('Remove @' + username + '?')) return;
+            await postJSON('/remove_account', { username });
+            await updateStatus();
+        }
+
+        async function setColor(username, color) { await postJSON('/set_color', { username, color }); }
+
+        async function setFilters(username, include, exclude) { await postJSON('/set_filters', { username, include, exclude }); }
+
+        async function setInterval() {
+            const m = parseInt(document.getElementById('intervalInput').value);
+            await postJSON('/set_interval', { minutes: m });
+        }
+
+        async function setNitter() {
+            const i = document.getElementById('nitterInput').value.trim();
+            await postJSON('/set_nitter', { instance: i });
+        }
+
+        async function setWebhook() {
+            const url = document.getElementById('webhookInput').value.trim();
+            if (url.includes('(set') || url.includes('(not')) return;
+            await postJSON('/set_webhook', { url: url });
+            document.getElementById('webhookInput').value = '(set)';
+        }
+
+        function toggleInstructions() {
+            const el = document.getElementById('cookieInstructions');
+            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        }
+
+        async function saveCookies() {
+            const t = document.getElementById('authTokenInput').value;
+            const c = document.getElementById('ct0Input').value;
+            const result = await postJSON('/set_cookies', {
+                auth_token: t.endsWith('...') ? '' : t,
+                ct0: c.endsWith('...') ? '' : c,
+            });
+            if (result.cookie_healthy !== undefined) {
+                const ch = document.getElementById('cookieHealth');
+                const h = result.cookie_healthy;
+                ch.textContent = h ? 'Healthy' : 'Expired';
+                ch.style.color = h ? '#4ade80' : '#f87171';
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ── Polling ──
+        async function pollAll() {
+            try {
+                await Promise.all([updateStatus(), updateLogs(), updateRecent()]);
+                document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+            } catch(e) {}
+            setTimeout(pollAll, 3000);
+        }
+
+        window.onload = function() { pollAll(); };
+    </script>
+</body>
+</html>
