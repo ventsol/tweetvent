@@ -5,8 +5,6 @@ Then open http://localhost:5000 in your browser.
 """
 
 import threading
-import tomllib
-from pathlib import Path
 
 import logging
 from flask import Flask, jsonify, render_template, request

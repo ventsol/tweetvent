@@ -5,7 +5,6 @@ No API key required.
 """
 
 import json
-import os
 import sys
 import time
 import tomllib
