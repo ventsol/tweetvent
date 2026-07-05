@@ -154,30 +154,31 @@ def post_to_discord(webhook_url, entry, username, color=None, tweet_type="tweet"
     links = extract_links(summary)
     has_vid = has_video(summary)
 
-    # Add media badges to description
-    badges = []
-    if has_vid:
-        badges.append("\U0001F3AC Video")
-    if tweet_type == "retweet":
-        badges.append("\U0001F501 Retweet")
-    if tweet_type == "quote":
-        badges.append("\U0001F4AC Quote")
-    if badges:
-        tweet_text = " ".join(badges) + "\n\n" + tweet_text
+    # Build the main embed - cleaner layout
+    type_labels = {"tweet": "", "reply": "Replied", "retweet": "Retweeted", "quote": "Quote"}
+    type_label = type_labels.get(tweet_type, "")
+    footer_text = f"{type_label} \u00B7 {pubdate}" if type_label else pubdate
 
-    # Build the main embed
+    # Build author name with badges
+    author_name = f"@{username}"
+    if has_vid:
+        author_name += " \U0001F3AC"
+    if tweet_type == "retweet":
+        author_name += " \U0001F501"
+    if tweet_type == "quote":
+        author_name += " \U0001F4AC"
+
     embed_data = {
-        "author": {"name": f"@{username}", "icon_url": f"https://unavatar.io/twitter/{username}"},
-        "title": "View on X",
+        "author": {"name": author_name, "icon_url": f"https://unavatar.io/twitter/{username}", "url": tweet_url},
         "description": tweet_text,
         "color": color if color else 1942002,
         "url": tweet_url,
-        "footer": {"text": pubdate},
+        "footer": {"text": footer_text},
     }
 
-    # Add external links as a field
+    # Add external links as a compact field
     if links:
-        links_text = "\n".join(links[:3])
+        links_text = "\n".join([f"\U0001F517 {l}" for l in links[:3]])
         embed_data["fields"] = [{"name": "\U0001F517 Links", "value": links_text, "inline": False}]
 
     # Add first image as embed image

@@ -203,32 +203,37 @@ class DiscordBot:
         links = self._extract_links(summary)
         has_video = self._has_video(summary)
 
-        # Add media badges to description
-        badges = []
-        if has_video:
-            badges.append("\U0001F3AC Video")  # video camera emoji
-        if tweet_type == "retweet":
-            badges.append("\U0001F501 Retweet")  # repeat emoji
-        if tweet_type == "quote":
-            badges.append("\U0001F4AC Quote")  # speech bubble emoji
-        if badges:
-            tweet_text = " ".join(badges) + "\n\n" + tweet_text
-
-        # Build embed
+        # Build embed - cleaner layout
         profile_pic = f"https://unavatar.io/twitter/{username}"
+
+        # Build footer (tweet type + time)
+        type_labels = {"tweet": "", "reply": "Replied", "retweet": "Retweeted", "quote": "Quote"}
+        type_label = type_labels.get(tweet_type, "")
+        footer_text = f"{type_label} \u00B7 {pubdate}" if type_label else pubdate
+
         embed_data = {
-            "author": {"name": f"@{username}", "icon_url": profile_pic},
-            "title": "View on X",
+            "author": {"name": f"@{username}", "icon_url": profile_pic, "url": tweet_url},
             "description": tweet_text,
             "color": color if color else 1942002,
             "url": tweet_url,
-            "footer": {"text": pubdate},
+            "footer": {"text": footer_text},
         }
 
-        # Add external links as a field
+        # Add media badges next to author on same line
+        author_suffix = ""
+        if has_video:
+            author_suffix += " \uD83C\uDFAC"  # video camera
+        if tweet_type == "retweet":
+            author_suffix += " \uD83D\uDD01"  # repeat
+        if tweet_type == "quote":
+            author_suffix += " \uD83D\uDCAC"  # speech bubble
+        if author_suffix:
+            embed_data["author"]["name"] = f"@{username}{author_suffix}"
+
+        # Add external links as a compact field
         if links:
-            links_text = "\n".join(links[:3])
-            embed_data["fields"] = [{"name": "\U0001F517 Links", "value": links_text, "inline": False}]
+            links_text = "\n".join([f"\U0001F517 {l}" for l in links[:3]])
+            embed_data["fields"] = [{"name": "", "value": links_text, "inline": False}]
 
         # Add first image as the embed thumbnail
         if images:
