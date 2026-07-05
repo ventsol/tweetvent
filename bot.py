@@ -153,10 +153,12 @@ def post_to_discord(webhook_url, entry, username, color=None):
     embeds = [embed_data]
 
     # Extra images as additional embeds (gallery)
-    for img_url in images[1:6]:
+    # Additional images as gallery (Discord renders multi-embed as grid)
+    for img_url in images[1:5]:
         embeds.append({
             "image": {"url": img_url},
             "color": color if color else 1942002,
+            "url": tweet_url,
         })
 
     payload = {

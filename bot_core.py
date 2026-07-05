@@ -190,10 +190,12 @@ class DiscordBot:
 
         # If there are more images, add extra embeds (up to 4 more for gallery feel)
         # Discord allows up to 10 embeds per webhook
-        for img_url in images[1:6]:
+        # Additional images as gallery (Discord renders multi-embed as grid)
+        for img_url in images[1:5]:
             embeds.append({
                 "image": {"url": img_url},
                 "color": color if color else 1942002,
+                "url": tweet_url,
             })
 
         payload = {
