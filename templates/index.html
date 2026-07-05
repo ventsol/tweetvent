@@ -200,6 +200,7 @@
                     <div class="info-item"><div class="label">Webhook</div><div class="value" id="webhookStatus">-</div></div>
                     <div class="info-item"><div class="label">Accounts</div><div class="value" id="accountCount">-</div></div>
                     <div class="info-item"><div class="label">Cookies</div><div class="value" id="cookieStatus">-</div></div>
+                    <div class="info-item"><div class="label">Direct Fetch</div><div class="value" id="directFetchStatus">-</div></div>
                 </div>
             </div>
 
@@ -362,6 +363,17 @@
                 } else {
                     cs.textContent = 'Not set';
                     cs.style.color = '#fbbf24';
+                }
+
+                const df = document.getElementById('directFetchStatus');
+                if (data.auth_token) {
+                    df.textContent = data.direct_fetch_ok ? 'Working' : 'Falling back to Nitter';
+                    df.style.color = data.direct_fetch_ok ? '#4ade80' : '#f87171';
+                    df.title = data.direct_fetch_ok ? 'Auth tokens working' : 'Cookies expired - refresh in Settings page';
+                } else {
+                    df.textContent = 'Nitter only';
+                    df.style.color = '#fbbf24';
+                    df.title = 'No auth tokens configured';
                 }
 
                 document.getElementById('btnStart').style.display = data.is_running ? 'none' : 'inline-block';

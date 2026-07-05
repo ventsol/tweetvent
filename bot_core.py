@@ -73,6 +73,7 @@ class DiscordBot:
         self.recent_tweets = deque(maxlen=50)  # (username, tweet_url, text, time)
         self.logs = deque(maxlen=100)
         self.account_stats = {}  # username -> count of tweets posted this session
+        self.direct_fetch_ok = True  # True if last direct fetch succeeded, False if fell back to Nitter
 
         # Load recent tweets from disk to survive restarts
         recent_file = Path(__file__).parent / "recent_tweets.json"
@@ -276,8 +277,13 @@ class DiscordBot:
                 direct_tweets = fetch_tweets_direct(username, auth_token, ct0)
                 if direct_tweets:
                     tweets = direct_tweets
-            except Exception:
-                pass
+                    self.direct_fetch_ok = True
+                else:
+                    self.direct_fetch_ok = False
+                    self._log(f"@{username}: Direct fetch timed out - cookies may need refresh, falling back to Nitter")
+            except Exception as e:
+                self.direct_fetch_ok = False
+                self._log(f"@{username}: Direct fetch failed ({e}), falling back to Nitter")
         
         # Fall back to Nitter RSS if direct fetch didn't work
         if tweets is None:

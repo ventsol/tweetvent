@@ -77,6 +77,7 @@ def status():
         "auth_token": cfg.get("auth", {}).get("auth_token", ""),
         "ct0": cfg.get("auth", {}).get("ct0", ""),
         "cookie_healthy": _check_cookies(cfg),
+        "direct_fetch_ok": bot.direct_fetch_ok,
     })
 
 
