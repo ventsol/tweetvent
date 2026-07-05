@@ -292,9 +292,9 @@ class DiscordBot:
             url = f"https://{instance}/{username}/rss"
             feed = feedparser.parse(url)
             if feed.bozo and not feed.entries:
-        self._log(f"@{username}: RSS feed failed — instance may be down")
-            self.account_health[username] = "rate_limited"
-            return 0
+                self._log(f"@{username}: RSS feed failed — instance may be down")
+                self.account_health[username] = "rate_limited"
+                return 0
             tweets = get_own_tweets(feed, username)
         
         if not tweets:
