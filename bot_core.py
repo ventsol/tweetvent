@@ -1,5 +1,5 @@
 """
-TweetVent v0.1.1 — Core bot logic
+TweetVent v0.1.3 — Core bot logic
 Runs in a background thread in the web app.
 """
 
@@ -140,6 +140,22 @@ class DiscordBot:
                 images.append(src)
         return images
 
+    def _extract_links(self, summary_html):
+        """Extract external links (not Twitter/Nitter) from summary HTML."""
+        if not summary_html:
+            return []
+        soup = BeautifulSoup(summary_html, 'html.parser')
+        links = []
+        for a in soup.find_all('a'):
+            href = a.get('href', '')
+            if href and href.startswith('http') and not any(d in href for d in ['nitter.net', 'twitter.com', 'x.com', '/status/', '/search']):
+                links.append(href)
+        return links[:3]  # Max 3 links
+
+    def _has_video(self, summary_html):
+        """Check if summary contains video content."""
+        return 'amplify_video' in summary_html or 'tweet_video_thumb' in summary_html
+
     @staticmethod
     def _infer_tweet_type(tweet_text):
         """Infer tweet type from text when direct fetch doesn't provide it."""
@@ -167,7 +183,7 @@ class DiscordBot:
         if not tweet_id:
             return False
 
-        tweet_url = f"https://x.com/{username}/status/{tweet_id}"
+        tweet_url = f"https://twitter.com/{username}/status/{tweet_id}"
         pubdate = entry.get("published", "unknown")
         summary = entry.get("summary", "")
 
@@ -180,8 +196,21 @@ class DiscordBot:
         if len(tweet_text) > 4000:
             tweet_text = tweet_text[:3997] + "..."
 
-        # Extract images from the RSS summary HTML
+        # Extract images and links from the RSS summary HTML
         images = self._extract_images(summary)
+        links = self._extract_links(summary)
+        has_video = self._has_video(summary)
+
+        # Add media badges to description
+        badges = []
+        if has_video:
+            badges.append("\U0001F3AC Video")  # video camera emoji
+        if tweet_type == "retweet":
+            badges.append("\U0001F501 Retweet")  # repeat emoji
+        if tweet_type == "quote":
+            badges.append("\U0001F4AC Quote")  # speech bubble emoji
+        if badges:
+            tweet_text = " ".join(badges) + "\n\n" + tweet_text
 
         # Build embed
         embed_data = {
@@ -192,6 +221,11 @@ class DiscordBot:
             "url": tweet_url,
             "footer": {"text": pubdate},
         }
+
+        # Add external links as a field
+        if links:
+            links_text = "\n".join(links[:3])
+            embed_data["fields"] = [{"name": "\U0001F517 Links", "value": links_text, "inline": False}]
 
         # Add first image as the embed thumbnail
         if images:

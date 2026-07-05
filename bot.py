@@ -1,5 +1,5 @@
 """
-TweetVent v0.1.1
+TweetVent v0.1.3
 Watches Twitter accounts and forwards new tweets to Discord.
 No API key required.
 """
@@ -97,10 +97,27 @@ def extract_images(summary_html):
     for img in soup.find_all('img'):
         src = img.get('src', '')
         if src and src.startswith('https://'):
-            # Convert Nitter proxy URLs to original Twitter CDN URLs
             src = to_twitter_cdn_url(src)
             images.append(src)
     return images
+
+
+def extract_links(summary_html):
+    """Extract external links from Nitter RSS summary HTML."""
+    if not summary_html:
+        return []
+    soup = BeautifulSoup(summary_html, 'html.parser')
+    links = []
+    for a in soup.find_all('a'):
+        href = a.get('href', '')
+        if href and href.startswith('http') and not any(d in href for d in ['nitter.net', 'twitter.com', 'x.com', '/status/', '/search']):
+            links.append(href)
+    return links[:3]
+
+
+def has_video(summary_html):
+    """Check if summary contains video content."""
+    return 'amplify_video' in summary_html or 'tweet_video_thumb' in summary_html
 
 
 def hex_to_int(hex_color):
@@ -120,7 +137,7 @@ def post_to_discord(webhook_url, entry, username, color=None, tweet_type="tweet"
     if not tweet_id:
         return False
 
-    tweet_url = f"https://x.com/{username}/status/{tweet_id}"
+    tweet_url = f"https://twitter.com/{username}/status/{tweet_id}"
     pubdate = entry.get("published", "unknown")
     summary = entry.get("summary", "")
 
@@ -133,8 +150,21 @@ def post_to_discord(webhook_url, entry, username, color=None, tweet_type="tweet"
     if len(tweet_text) > 4000:
         tweet_text = tweet_text[:3997] + "..."
 
-    # Extract images from RSS summary
+    # Extract images, links, video from RSS summary
     images = extract_images(summary)
+    links = extract_links(summary)
+    has_vid = has_video(summary)
+
+    # Add media badges to description
+    badges = []
+    if has_vid:
+        badges.append("\U0001F3AC Video")
+    if tweet_type == "retweet":
+        badges.append("\U0001F501 Retweet")
+    if tweet_type == "quote":
+        badges.append("\U0001F4AC Quote")
+    if badges:
+        tweet_text = " ".join(badges) + "\n\n" + tweet_text
 
     # Build the main embed
     embed_data = {
@@ -145,6 +175,11 @@ def post_to_discord(webhook_url, entry, username, color=None, tweet_type="tweet"
         "url": tweet_url,
         "footer": {"text": pubdate},
     }
+
+    # Add external links as a field
+    if links:
+        links_text = "\n".join(links[:3])
+        embed_data["fields"] = [{"name": "\U0001F517 Links", "value": links_text, "inline": False}]
 
     # Add first image as embed image
     if images:
@@ -352,7 +387,7 @@ def run_loop(cfg):
 
 def main():
     print("=" * 50)
-    print("  TweetVent v0.1.1")
+    print("  TweetVent v0.1.3")
     print("  (Direct Twitter + Nitter RSS)")
     print("=" * 50)
 
