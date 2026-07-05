@@ -1,5 +1,5 @@
 """
-TweetVent v0.1.4
+TweetVent v0.1.5
 Watches Twitter accounts and forwards new tweets to Discord.
 No API key required.
 """
@@ -316,7 +316,9 @@ def check_account(username, instance, webhook_url, state, color=None, include_wo
     # Post oldest first so Discord shows them in order
     new_tweets.reverse()
     count = 0
-    for tweet in new_tweets:
+    for i, tweet in enumerate(new_tweets):
+        if i > 0:
+            time.sleep(2)  # 2s delay so Discord shows them individually
         tw_type = getattr(tweet, 'tweet_type', None) or "tweet"
         if post_to_discord(webhook_url, tweet, username, color=color, tweet_type=tw_type):
             count += 1
@@ -387,7 +389,7 @@ def run_loop(cfg):
 
 def main():
     print("=" * 50)
-    print("  TweetVent v0.1.4")
+    print("  TweetVent v0.1.5")
     print("  (Direct Twitter + Nitter RSS)")
     print("=" * 50)
 

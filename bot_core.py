@@ -1,5 +1,5 @@
 """
-TweetVent v0.1.4 — Core bot logic
+TweetVent v0.1.5 — Core bot logic
 Runs in a background thread in the web app.
 """
 
@@ -331,7 +331,9 @@ class DiscordBot:
 
         new_tweets.reverse()  # oldest first
         count = 0
-        for tweet in new_tweets:
+        for i, tweet in enumerate(new_tweets):
+            if i > 0:
+                time.sleep(2)  # 2s delay between tweets so Discord shows them individually
             tw_type = getattr(tweet, 'tweet_type', None) or self._infer_tweet_type(tweet_text)
             if self._post_to_discord(webhook_url, tweet, username, color=color, tweet_type=tw_type):
                 count += 1
