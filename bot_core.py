@@ -1,5 +1,5 @@
 """
-TweetVent v0.1.6 — Core bot logic
+TweetVent v0.1.7 — Core bot logic
 Runs in a background thread in the web app.
 """
 
