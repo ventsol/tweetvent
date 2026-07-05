@@ -1,5 +1,5 @@
 """
-TweetVent v0.1.0 — Web Dashboard
+TweetVent v0.1.1 — Web Dashboard
 Run with: python app.py
 Then open http://localhost:5000 in your browser.
 """
@@ -262,7 +262,7 @@ def check_now():
 
 if __name__ == "__main__":
     print("=" * 50)
-    print("  TweetVent v0.1.0")
+    print("  TweetVent v0.1.1")
     print("  Web Dashboard")
     print("=" * 50)
     print()

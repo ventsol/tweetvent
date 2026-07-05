@@ -1,5 +1,5 @@
 """
-TweetVent v0.1.0
+TweetVent v0.1.1
 Watches Twitter accounts and forwards new tweets to Discord.
 No API key required.
 """
@@ -352,7 +352,7 @@ def run_loop(cfg):
 
 def main():
     print("=" * 50)
-    print("  TweetVent v0.1.0")
+    print("  TweetVent v0.1.1")
     print("  (Direct Twitter + Nitter RSS)")
     print("=" * 50)
 
