@@ -74,6 +74,7 @@ class DiscordBot:
         self.logs = deque(maxlen=100)
         self.account_stats = {}  # username -> count of tweets posted this session
         self.direct_fetch_ok = True  # True if last direct fetch succeeded, False if fell back to Nitter
+        self.account_health = {}  # username -> 'ok', 'rate_limited', 'no_tweets'
 
         # Load recent tweets from disk to survive restarts
         recent_file = Path(__file__).parent / "recent_tweets.json"
@@ -291,11 +292,13 @@ class DiscordBot:
             url = f"https://{instance}/{username}/rss"
             feed = feedparser.parse(url)
             if feed.bozo and not feed.entries:
-                self._log(f"@{username}: RSS feed failed — instance may be down")
-                return 0
+        self._log(f"@{username}: RSS feed failed — instance may be down")
+            self.account_health[username] = "rate_limited"
+            return 0
             tweets = get_own_tweets(feed, username)
         
         if not tweets:
+            self.account_health[username] = "no_tweets"
             return 0
 
         since_id = state.get(username)
@@ -327,6 +330,7 @@ class DiscordBot:
                             continue
                 new_tweets.append(t)
 
+        self.account_health[username] = "ok"
         if not new_tweets:
             return 0
 
