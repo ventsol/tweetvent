@@ -372,6 +372,7 @@
                 if (data.accounts.length === 0) {
                     list.innerHTML = '<div class="empty-state">No accounts added yet</div>';
                 } else {
+                    function kwCount(s) { return s ? s.split(',').filter(Boolean).length : 0; }
                     list.innerHTML = data.accounts.map(u => {
                         const c = data.colors && data.colors[u] ? data.colors[u] : '#1DA1F2';
                         const inc = data.filters && data.filters.include && data.filters.include[u] || '';
@@ -384,25 +385,24 @@
                             '</div>' +
                             '<button class="btn btn-danger btn-sm" onclick="removeAccount(\'' + u + '\')">Remove</button>' +
                             '</div>' +
-                            function kwCount(s) { return s ? s.split(',').filter(Boolean).length : 0; }
-                            return '<div class="account-filters">' +
-                                '<div class="filter-group">' +
-                                '<div class="filter-header">' +
-                                '<span class="filter-dot inc"></span>' +
-                                '<span class="filter-label inc">Include</span>' +
-                                '<span class="filter-count">' + kwCount(inc) + '</span>' +
-                                '</div>' +
-                                '<input type="text" value="' + escapeHtml(inc) + '" placeholder="deal, sale, ps5..." class="filter-input inc" onchange="setFilters(\'' + u + '\',this.value,this.closest(\'.account-filters\').querySelector(\'.filter-input.exc\').value)">' +
-                                '</div>' +
-                                '<div class="filter-group">' +
-                                '<div class="filter-header">' +
-                                '<span class="filter-dot exc"></span>' +
-                                '<span class="filter-label exc">Exclude</span>' +
-                                '<span class="filter-count">' + kwCount(exc) + '</span>' +
-                                '</div>' +
-                                '<input type="text" value="' + escapeHtml(exc) + '" placeholder="spam, ads..." class="filter-input exc" onchange="setFilters(\'' + u + '\',this.closest(\'.account-filters\').querySelector(\'.filter-input.inc\').value,this.value)">' +
-                                '</div>' +
-                                '</div></div>';
+                            '<div class="account-filters">' +
+                            '<div class="filter-group">' +
+                            '<div class="filter-header">' +
+                            '<span class="filter-dot inc"></span>' +
+                            '<span class="filter-label inc">Include</span>' +
+                            '<span class="filter-count">' + kwCount(inc) + '</span>' +
+                            '</div>' +
+                            '<input type="text" value="' + escapeHtml(inc) + '" placeholder="deal, sale, ps5..." class="filter-input inc" onchange="setFilters(\'' + u + '\',this.value,this.closest(\'.account-filters\').querySelector(\'.filter-input.exc\').value)">' +
+                            '</div>' +
+                            '<div class="filter-group">' +
+                            '<div class="filter-header">' +
+                            '<span class="filter-dot exc"></span>' +
+                            '<span class="filter-label exc">Exclude</span>' +
+                            '<span class="filter-count">' + kwCount(exc) + '</span>' +
+                            '</div>' +
+                            '<input type="text" value="' + escapeHtml(exc) + '" placeholder="spam, ads..." class="filter-input exc" onchange="setFilters(\'' + u + '\',this.closest(\'.account-filters\').querySelector(\'.filter-input.inc\').value,this.value)">' +
+                            '</div>' +
+                            '</div></div>';
                     }).join('');
                 }
 
