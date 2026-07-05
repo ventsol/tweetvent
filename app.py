@@ -251,6 +251,7 @@ def set_nitter():
 def check_now():
     """Trigger an immediate check (runs in a background thread)."""
     def _check():
+        bot._log("Manual check triggered via Check Now")
         bot.run_once()
     t = threading.Thread(target=_check, daemon=True)
     t.start()
