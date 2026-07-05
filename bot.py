@@ -114,7 +114,7 @@ def hex_to_int(hex_color):
         return 1942002
 
 
-def post_to_discord(webhook_url, entry, username, color=None):
+def post_to_discord(webhook_url, entry, username, color=None, tweet_type="tweet"):
     """Send a tweet to a Discord webhook channel."""
     tweet_id = parse_tweet_id_from_link(entry.link)
     if not tweet_id:
@@ -161,9 +161,11 @@ def post_to_discord(webhook_url, entry, username, color=None):
             "url": tweet_url,
         })
 
+    type_labels = {"tweet": "tweeted", "reply": "replied", "retweet": "retweeted", "quote": "quote tweeted"}
+    label = type_labels.get(tweet_type, "tweeted")
     payload = {
         "embeds": embeds,
-        "content": f"**@{username}** tweeted",
+        "content": f"**@{username}** {label}",
     }
 
     resp = requests.post(webhook_url, json=payload)
@@ -248,8 +250,15 @@ def check_account(username, instance, webhook_url, state, color=None, include_wo
             # Filter out replies (tweets starting with @)
             summary = t.get("summary", "")
             tweet_text = BeautifulSoup(summary, 'html.parser').get_text(strip=True) if summary else ""
-            if tweet_text and tweet_text.startswith('@'):
-                continue
+            # Determine tweet type
+            tw_type = getattr(t, 'tweet_type', None)
+            if not tw_type:
+                if tweet_text and tweet_text.startswith('@'):
+                    tw_type = "reply"
+                elif not tweet_text or tweet_text.startswith('[RT]'):
+                    tw_type = "retweet"
+                else:
+                    tw_type = "tweet"
             # Apply keyword filters
             if tweet_text and (include_words or exclude_words):
                 lower_text = tweet_text.lower()
@@ -273,7 +282,8 @@ def check_account(username, instance, webhook_url, state, color=None, include_wo
     new_tweets.reverse()
     count = 0
     for tweet in new_tweets:
-        if post_to_discord(webhook_url, tweet, username, color=color):
+        tw_type = getattr(tweet, 'tweet_type', None) or "tweet"
+        if post_to_discord(webhook_url, tweet, username, color=color, tweet_type=tw_type):
             count += 1
 
     # Update state with the latest tweet ID for this account

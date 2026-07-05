@@ -141,6 +141,17 @@ class DiscordBot:
         return images
 
     @staticmethod
+    def _infer_tweet_type(tweet_text):
+        """Infer tweet type from text when direct fetch doesn't provide it."""
+        if not tweet_text:
+            return "retweet"
+        if tweet_text.startswith('RT'):
+            return "retweet"
+        if tweet_text.startswith('@'):
+            return "reply"
+        return "tweet"
+
+    @staticmethod
     def _hex_to_int(hex_color):
         """Convert a hex color string (e.g. #1DA1F2) to Discord integer."""
         if not hex_color or not isinstance(hex_color, str):
@@ -151,7 +162,7 @@ class DiscordBot:
         except (ValueError, TypeError):
             return 1942002
 
-    def _post_to_discord(self, webhook_url, entry, username, color=None):
+    def _post_to_discord(self, webhook_url, entry, username, color=None, tweet_type="tweet"):
         tweet_id = parse_tweet_id_from_link(entry.link)
         if not tweet_id:
             return False
@@ -198,9 +209,11 @@ class DiscordBot:
                 "url": tweet_url,
             })
 
+        type_labels = {"tweet": "tweeted", "reply": "replied", "retweet": "retweeted", "quote": "quote tweeted"}
+        label = type_labels.get(tweet_type, "tweeted")
         payload = {
             "embeds": embeds,
-            "content": f"**@{username}** tweeted",
+            "content": f"**@{username}** {label}",
         }
 
         resp = requests.post(webhook_url, json=payload, timeout=15)
@@ -253,11 +266,11 @@ class DiscordBot:
                 # Skip if already posted (dedup across direct + Nitter)
                 if tid in posted_set:
                     continue
-                # Filter out replies (tweets starting with @)
+                # Extract tweet text for filtering
                 summary = t.get("summary", "")
                 tweet_text = BeautifulSoup(summary, 'html.parser').get_text(strip=True) if summary else ""
-                if tweet_text and tweet_text.startswith('@'):
-                    continue
+                # Get tweet type (from direct fetch) or infer it
+                tweet_type = getattr(t, 'tweet_type', None) or _infer_tweet_type(tweet_text)
                 # Apply keyword filters
                 if tweet_text and (include_words or exclude_words):
                     lower_text = tweet_text.lower()
@@ -279,7 +292,8 @@ class DiscordBot:
         new_tweets.reverse()  # oldest first
         count = 0
         for tweet in new_tweets:
-            if self._post_to_discord(webhook_url, tweet, username, color=color):
+            tw_type = getattr(tweet, 'tweet_type', None) or self._infer_tweet_type(tweet_text)
+            if self._post_to_discord(webhook_url, tweet, username, color=color, tweet_type=tw_type):
                 count += 1
 
         newest_id = str(max(int(parse_tweet_id_from_link(t.link)) for t in new_tweets))
