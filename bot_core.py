@@ -1,5 +1,5 @@
 """
-TweetVent v0.1.5 — Core bot logic
+TweetVent v0.1.6 — Core bot logic
 Runs in a background thread in the web app.
 """
 
@@ -214,8 +214,9 @@ class DiscordBot:
             tweet_text = " ".join(badges) + "\n\n" + tweet_text
 
         # Build embed
+        profile_pic = f"https://unavatar.io/twitter/{username}"
         embed_data = {
-            "author": {"name": f"@{username}"},
+            "author": {"name": f"@{username}", "icon_url": profile_pic},
             "title": "View on X",
             "description": tweet_text,
             "color": color if color else 1942002,

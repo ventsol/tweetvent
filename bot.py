@@ -1,5 +1,5 @@
 """
-TweetVent v0.1.5
+TweetVent v0.1.6
 Watches Twitter accounts and forwards new tweets to Discord.
 No API key required.
 """
@@ -168,7 +168,7 @@ def post_to_discord(webhook_url, entry, username, color=None, tweet_type="tweet"
 
     # Build the main embed
     embed_data = {
-        "author": {"name": f"@{username}"},
+        "author": {"name": f"@{username}", "icon_url": f"https://unavatar.io/twitter/{username}"},
         "title": "View on X",
         "description": tweet_text,
         "color": color if color else 1942002,
@@ -389,7 +389,7 @@ def run_loop(cfg):
 
 def main():
     print("=" * 50)
-    print("  TweetVent v0.1.5")
+    print("  TweetVent v0.1.6")
     print("  (Direct Twitter + Nitter RSS)")
     print("=" * 50)
 
