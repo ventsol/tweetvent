@@ -218,7 +218,7 @@
                 <h2>General</h2>
                 <div class="settings-row">
                     <label>Poll interval:</label>
-                    <input type="number" id="intervalInput" min="1" max="60" value="5" style="width:60px;">
+                    <input type="number" id="intervalInput" min="0.25" max="60" step="0.25" value="1" style="width:70px;">
                     <span style="font-size:11px;color:#666;">minutes</span>
                     <button class="btn btn-small" onclick="setInterval()">Set</button>
                 </div>
@@ -461,7 +461,7 @@
         async function setFilters(username, include, exclude) { await postJSON('/set_filters', { username, include, exclude }); }
 
         async function setInterval() {
-            const m = parseInt(document.getElementById('intervalInput').value);
+            const m = parseFloat(document.getElementById('intervalInput').value);
             await postJSON('/set_interval', { minutes: m });
         }
 
