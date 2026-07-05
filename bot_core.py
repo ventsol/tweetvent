@@ -338,9 +338,9 @@ class DiscordBot:
             self.run_once()
             try:
                 cfg = load_config()
-                interval = cfg["bot"].get("poll_interval_minutes", 5) * 60
+                interval = cfg["bot"].get("poll_interval_minutes", 0.5) * 60
             except Exception:
-                interval = 300  # default 5 min
+                interval = 30  # default 30 seconds
 
             # Wait for the interval, but check stop event every second
             for _ in range(interval):

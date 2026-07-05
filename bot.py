@@ -323,7 +323,7 @@ def run_once(cfg):
 
 def run_loop(cfg):
     """Run the polling loop forever."""
-    interval = cfg["bot"].get("poll_interval_minutes", 5) * 60
+    interval = cfg["bot"].get("poll_interval_minutes", 0.5) * 60
     accounts = cfg["twitter"]["accounts"]
     print(f"Watching: @{', @'.join(accounts)}")
     print(f"Polling every {cfg['bot']['poll_interval_minutes']} minutes. Press Ctrl+C to stop.\n")
