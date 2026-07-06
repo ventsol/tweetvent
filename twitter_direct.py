@@ -79,26 +79,41 @@ def _try_playwright(username, auth_token, ct0):
                         if (v.poster && v.poster.includes('pbs.twimg.com')) imgSrcs.push(v.poster);
                     }
 
-                    // Quoted tweet
-                    let displayText = text;
-                    const quoted = article.querySelector('[data-testid="card.wrapper"]');
-                    if (quoted) {
-                        const qt = quoted.querySelector('[data-testid="tweetText"]');
-                        if (qt && qt.textContent) {
-                            const prefix = text ? '\\\\n\\\\n[Quote] ' : '[Quote] ';
-                            displayText = text + prefix + qt.textContent;
-                        }
-                    }
-
                     // Tweet type detection
                     let tweetType = 'tweet';
                     const retweetedSpan = article.querySelector('span[data-testid="socialContext"]');
+                    const quoted = article.querySelector('[data-testid="card.wrapper"]');
                     if (retweetedSpan && retweetedSpan.textContent.includes('Retweeted')) {
                         tweetType = 'retweet';
                     } else if (quoted) {
                         tweetType = 'quote';
                     } else if (text && text.trimStart().startsWith('@')) {
                         tweetType = 'reply';
+                    }
+
+                    // Build display text based on tweet type
+                    let displayText = text;
+                    if (tweetType === 'retweet') {
+                        // For retweets, try to find the retweeted content in the article
+                        const allTexts = article.querySelectorAll('[data-testid="tweetText"]');
+                        if (allTexts.length > 1) {
+                            // Second tweetText is the retweeted content
+                            const rtText = allTexts[1].textContent || '';
+                            if (text) {
+                                displayText = text + '\\n\\n\u2192 Retweeted:\\n' + rtText;
+                            } else {
+                                displayText = '\u2192 Retweeted:\\n' + rtText;
+                            }
+                        }
+                    } else if (quoted) {
+                        const qt = quoted.querySelector('[data-testid="tweetText"]');
+                        if (qt && qt.textContent) {
+                            if (text) {
+                                displayText = text + '\\n\\n\u2192 Quoted:\\n' + qt.textContent;
+                            } else {
+                                displayText = '\u2192 Quoted:\\n' + qt.textContent;
+                            }
+                        }
                     }
 
                     results.push({ text: displayText, link, time, author: username, images: imgSrcs, type: tweetType });
