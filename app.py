@@ -1,5 +1,5 @@
 """
-TweetVent v0.1.7 — Web Dashboard (FastAPI)
+TweetVent v0.1.8 — Web Dashboard (FastAPI)
 Run with: python app.py
 Then open http://localhost:5000 in your browser.
 """
@@ -298,7 +298,7 @@ async def set_account_webhook(request: Request):
 if __name__ == "__main__":
     import uvicorn
     print("=" * 50)
-    print("  TweetVent v0.1.7")
+    print("  TweetVent v0.1.8")
     print("  Web Dashboard (FastAPI)")
     print("=" * 50)
     print()
