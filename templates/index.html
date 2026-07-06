@@ -240,7 +240,10 @@
 <body>
     <!-- Sidebar -->
     <div class="sidebar">
-        <div class="sidebar-header">TweetVent <span>//</span><span class="sidebar-version">v0.2.1</span></div>
+        <div class="sidebar-header">
+            <img src="/logo" alt="TweetVent" style="height:28px;width:28px;vertical-align:middle;border-radius:8px;margin-right:6px;">
+            TweetVent <span class="sidebar-version">v0.2.1</span>
+        </div>
         <div class="nav-item active" onclick="showPage('dashboard')"><span class="icon">&#9776;</span> Dashboard</div>
         <div class="nav-item" onclick="showPage('accounts')"><span class="icon">@</span> Accounts</div>
         <div class="nav-item" onclick="showPage('settings')"><span class="icon">&#9881;</span> Settings</div>
@@ -257,7 +260,10 @@
         <div class="page active" id="page-dashboard">
             <div class="card">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-                    <h2 style="margin:0;">Dashboard</h2>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <img src="/logo" alt="" style="height:32px;width:32px;border-radius:8px;">
+                        <h2 style="margin:0;">Dashboard</h2>
+                    </div>
                     <span class="status-badge" id="statusBadge">Loading...</span>
                 </div>
                 <div class="controls" style="margin-bottom:14px;">
