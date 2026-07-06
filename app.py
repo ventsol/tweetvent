@@ -87,6 +87,7 @@ async def status():
         "cookie_healthy": _check_cookies(cfg),
         "direct_fetch_ok": bot.direct_fetch_ok,
         "account_health": bot.account_health,
+        "paused": cfg.get("paused", []),
     })
 
 
@@ -240,6 +241,26 @@ async def set_filters(request: Request):
 
     bot._log(f"Filters updated for @{username}")
     return JSONResponse({"success": True, "filters": cfg.get("filters", {})})
+
+
+@app.post("/toggle_pause")
+async def toggle_pause(request: Request):
+    data = await request.json()
+    username = data.get("username", "").strip()
+
+    with config_lock:
+        cfg = load_config()
+        paused = cfg.get("paused", [])
+        if username in paused:
+            paused.remove(username)
+            bot._log(f"@{username}: Resumed")
+        else:
+            paused.append(username)
+            bot._log(f"@{username}: Paused")
+        cfg["paused"] = paused
+        save_config(cfg)
+
+    return JSONResponse({"success": True, "paused": paused, "is_paused": username in paused})
 
 
 @app.post("/set_interval")

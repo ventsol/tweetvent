@@ -374,10 +374,14 @@ class DiscordBot:
         ct0 = cfg.get("auth", {}).get("ct0")
         state = self._load_state()
 
+        paused = cfg.get("paused", [])
         total = 0
         for username in accounts:
             if self._stop_event.is_set():
                 break
+            if username.strip() in paused:
+                self.account_health[username.strip()] = "paused"
+                continue
             try:
                 color = self._hex_to_int(colors.get(username.strip()))
                 # Use per-account webhook if set, otherwise default

@@ -413,8 +413,12 @@
                     statsEl.innerHTML = data.accounts.map(function(u) {
                         const count = stats[u] || 0;
                         const health = data.account_health && data.account_health[u];
+                        const isPaused = data.paused && data.paused.includes(u);
                         let dot, tooltip;
-                        if (health === 'rate_limited') {
+                        if (isPaused) {
+                            dot = '<span style="color:#888;font-size:16px;" title="Paused">\u23F8</span>';
+                            tooltip = 'Paused';
+                        } else if (health === 'rate_limited') {
                             dot = '<span style="color:#f87171;font-size:16px;" title="Rate limited">&#9679;</span>';
                             tooltip = 'Rate limited';
                         } else if (health === 'no_tweets') {
@@ -473,6 +477,7 @@
                             '<span class="name-badge" style="background:' + c + ';color:#000;">@' + u + '</span>' +
                             '<input type="color" value="' + c + '" onchange="setColor(\'' + u + '\', this.value)" class="color-picker">' +
                             '</div>' +
+                            '<button class="btn btn-small" style="background:var(--bg5);" onclick="togglePause(\'' + u + '\')">' + (data.paused && data.paused.includes(u) ? '\u25B6 Resume' : '\u23F8 Pause') + '</button>' +
                             '<button class="btn btn-danger btn-sm" onclick="removeAccount(\'' + u + '\')">Remove</button>' +
                             '</div>' +
                             '<div class="account-filters">' +
@@ -586,6 +591,11 @@
 
         async function setAccountWebhook(username, url) {
             await postJSON('/set_account_webhook', { username, url });
+        }
+
+        async function togglePause(username) {
+            const result = await postJSON('/toggle_pause', { username });
+            await updateStatus();
         }
 
         async function clearRecent() {
