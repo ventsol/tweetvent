@@ -372,6 +372,10 @@
             document.getElementById('page-' + name).classList.add('active');
             document.querySelector('.nav-item[onclick*="' + name + '"]').classList.add('active');
             currentPage = name;
+            // Refresh content when switching pages
+            updateStatus();
+            updateLogs();
+            updateRecent();
         }
 
         async function getJSON(url) {
