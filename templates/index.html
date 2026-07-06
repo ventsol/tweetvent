@@ -318,31 +318,36 @@
             </div>
 
             <div class="card">
-                <h2>Twitter Auth <span id="cookieHealth" style="font-size:11px;text-transform:none;letter-spacing:0;font-weight:400;color:#888;">checking...</span></h2>
-                <div style="display:flex;flex-direction:column;gap:6px;">
-                    <div style="display:flex;align-items:center;gap:6px;">
-                        <span style="font-size:11px;color:#999;min-width:70px;">auth_token:</span>
-                        <input type="text" id="authTokenInput" style="flex:1;font-family:monospace;font-size:10px;padding:4px 6px;border-radius:5px;border:1px solid #2a2a3a;background:#232340;color:#fff;outline:none;">
+                <h2>Twitter Auth</h2>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="font-size:12px;color:#999;min-width:75px;font-weight:500;">auth_token:</span>
+                        <input type="text" id="authTokenInput" placeholder="Paste auth_token here..." style="flex:1;font-family:monospace;font-size:11px;padding:6px 10px;border-radius:8px;border:1px solid var(--border3);background:var(--input-bg);color:var(--text);outline:none;transition:border-color 0.2s;">
+                        <button class="btn btn-small" onclick="document.getElementById('authTokenInput').value='';document.getElementById('authTokenInput').focus()" style="padding:4px 8px;">Clear</button>
                     </div>
-                    <div style="display:flex;align-items:center;gap:6px;">
-                        <span style="font-size:11px;color:#999;min-width:70px;">ct0:</span>
-                        <input type="text" id="ct0Input" style="flex:1;font-family:monospace;font-size:10px;padding:4px 6px;border-radius:5px;border:1px solid #2a2a3a;background:#232340;color:#fff;outline:none;">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="font-size:12px;color:#999;min-width:75px;font-weight:500;">ct0:</span>
+                        <input type="text" id="ct0Input" placeholder="Paste ct0 here..." style="flex:1;font-family:monospace;font-size:11px;padding:6px 10px;border-radius:8px;border:1px solid var(--border3);background:var(--input-bg);color:var(--text);outline:none;transition:border-color 0.2s;">
+                        <button class="btn btn-small" onclick="document.getElementById('ct0Input').value='';document.getElementById('ct0Input').focus()" style="padding:4px 8px;">Clear</button>
                     </div>
-                    <div style="display:flex;gap:6px;align-items:center;margin-top:4px;">
-                        <button class="btn btn-small" onclick="saveCookies()">Save Cookies</button>
-                        <button class="btn btn-small" onclick="toggleInstructions()">How to get cookies</button>
+                    <div style="display:flex;gap:8px;align-items:center;margin-top:4px;">
+                        <button class="btn btn-primary" onclick="saveCookies()" style="padding:8px 20px;">Save Cookies</button>
+                        <span id="cookieHealth" style="font-size:12px;font-weight:500;">checking...</span>
+                        <button class="btn btn-small" onclick="toggleInstructions()" style="margin-left:auto;">How to get cookies</button>
                     </div>
                 </div>
-                <div id="cookieInstructions" style="display:none;margin-top:10px;padding:12px;background:#1a1a2e;border-radius:8px;font-size:12px;line-height:1.6;color:#aaa;">
-                    <b style="color:#fff;">How to get your Twitter cookies:</b>
-                    <ol style="margin:6px 0 0 16px;padding:0;">
-                        <li>Open <b>twitter.com</b> or <b>x.com</b> and log in</li>
-                        <li>Press <b>F12</b> to open DevTools</li>
-                        <li>Go to <b>Application</b> tab (Chrome) or <b>Storage</b> tab (Firefox)</li>
-                        <li>Click <b>Cookies</b> on the left, then <b>x.com</b></li>
-                        <li>Copy the <b>Value</b> fields for <code>auth_token</code> and <code>ct0</code></li>
-                        <li>Paste them above and click <b>Save Cookies</b></li>
+                <div id="cookieInstructions" style="display:none;margin-top:12px;padding:16px;background:var(--bg4);border-radius:12px;border:1px solid var(--border2);font-size:13px;line-height:1.7;color:var(--text4);">
+                    <b style="color:var(--text2);font-size:14px;">How to get your Twitter cookies:</b>
+                    <ol style="margin:8px 0 0 20px;padding:0;">
+                        <li>Open <b>x.com</b> in your browser and make sure you're logged in</li>
+                        <li>Press <b>F12</b> (or right-click → Inspect)</li>
+                        <li>Go to the <b>Application</b> tab (Chrome/Edge) or <b>Storage</b> tab (Firefox)</li>
+                        <li>Click <b>Cookies</b> → <b>x.com</b> in the left menu</li>
+                        <li>Find <code>auth_token</code> and <code>ct0</code> — double-click their <b>Value</b> cells, press <b>Ctrl+C</b></li>
+                        <li>Paste them into the fields above and click <b>Save Cookies</b></li>
                     </ol>
+                    <p style="margin-top:8px;font-size:12px;color:var(--text6);">Needs to be refreshed about once a week. The bot falls back to Nitter automatically if cookies expire.</p>
+                </div>
                 </div>
             </div>
         </div>
@@ -457,20 +462,20 @@
                 const cs = document.getElementById('cookieStatus');
                 if (data.auth_token) {
                     cs.textContent = data.cookie_healthy ? 'Healthy' : 'Expired';
-                    cs.style.color = data.cookie_healthy ? 'var(--green)' : 'var(--red)';
+                    cs.style.color = data.cookie_healthy ? '#00d68f' : '#ff6b6b';
                 } else {
                     cs.textContent = 'Not set';
-                    cs.style.color = 'var(--yellow)';
+                    cs.style.color = '#ffd93d';
                 }
 
                 const df = document.getElementById('directFetchStatus');
                 if (data.auth_token) {
                     df.textContent = data.direct_fetch_ok ? 'Working' : 'Falling back to Nitter';
-                    df.style.color = data.direct_fetch_ok ? 'var(--green)' : 'var(--red)';
+                    df.style.color = data.direct_fetch_ok ? '#00d68f' : '#ff6b6b';
                     df.title = data.direct_fetch_ok ? 'Auth tokens working' : 'Cookies expired - refresh in Settings page';
                 } else {
                     df.textContent = 'Nitter only';
-                    df.style.color = 'var(--yellow)';
+                    df.style.color = '#ffd93d';
                     df.title = 'No auth tokens configured';
                 }
 
@@ -484,7 +489,7 @@
                 } else {
                     function kwCount(s) { return s ? s.split(',').filter(Boolean).length : 0; }
                     list.innerHTML = data.accounts.map(u => {
-                        const c = data.colors && data.colors[u] ? data.colors[u] : 'var(--accent)';
+                        const c = data.colors && data.colors[u] ? data.colors[u] : '#6c5ce7';
                         const inc = data.filters && data.filters.include && data.filters.include[u] || '';
                         const exc = data.filters && data.filters.exclude && data.filters.exclude[u] || '';
                         return '<div class="account-item">' +
@@ -531,12 +536,10 @@
                 if (data.auth_token) {
                     const h = data.cookie_healthy;
                     chEl.textContent = h ? 'Healthy' : 'Expired';
-                    chEl.style.color = h ? 'var(--green)' : 'var(--red)';
-                    document.getElementById('authTokenInput').value = data.auth_token.slice(0, 20) + '...';
-                    document.getElementById('ct0Input').value = data.ct0.slice(0, 20) + '...';
+                    chEl.style.color = h ? '#00d68f' : '#ff6b6b';
                 } else {
                     chEl.textContent = 'Not configured';
-                    chEl.style.color = 'var(--yellow)';
+                    chEl.style.color = '#ffd93d';
                 }
             } catch(e) {
                 console.log('Status fetch failed:', e);
@@ -633,17 +636,22 @@
         }
 
         async function saveCookies() {
-            const t = document.getElementById('authTokenInput').value;
-            const c = document.getElementById('ct0Input').value;
-            const result = await postJSON('/set_cookies', {
-                auth_token: t.endsWith('...') ? '' : t,
-                ct0: c.endsWith('...') ? '' : c,
-            });
+            const authToken = document.getElementById('authTokenInput').value.trim();
+            const ct0 = document.getElementById('ct0Input').value.trim();
+            if (!authToken || !ct0) {
+                alert('Please paste both auth_token and ct0 values from your browser cookies.');
+                return;
+            }
+            const result = await postJSON('/set_cookies', { auth_token: authToken, ct0: ct0 });
             if (result.cookie_healthy !== undefined) {
                 const ch = document.getElementById('cookieHealth');
                 const h = result.cookie_healthy;
                 ch.textContent = h ? 'Healthy' : 'Expired';
-                ch.style.color = h ? 'var(--green)' : 'var(--red)';
+                ch.style.color = h ? '#00d68f' : '#ff6b6b';
+                if (h) {
+                    document.getElementById('authTokenInput').value = '';
+                    document.getElementById('ct0Input').value = '';
+                }
             }
         }
 
