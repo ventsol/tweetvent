@@ -437,30 +437,25 @@
                 if (Object.keys(stats).length === 0) {
                     statsEl.innerHTML = '<div class="empty-state">No activity yet</div>';
                 } else {
+                    function getStatusInfo(isPaused, health, count) {
+                        if (isPaused) return {dot: '#888', icon: '\u23F8', label: 'Paused'};
+                        if (health === 'rate_limited') return {dot: '#ff6b6b', icon: '\u25CF', label: 'Rate limited'};
+                        if (health === 'no_tweets') return {dot: '#ffd93d', icon: '\u25CF', label: 'No tweets'};
+                        if (count > 0) return {dot: '#00d68f', icon: '\u25CF', label: 'Working'};
+                        return {dot: '#555', icon: '\u25CF', label: 'Waiting'};
+                    }
                     statsEl.innerHTML = data.accounts.map(function(u) {
                         const count = stats[u] || 0;
                         const health = data.account_health && data.account_health[u];
                         const isPaused = data.paused && data.paused.includes(u);
-                        let dot, tooltip;
-                        if (isPaused) {
-                            dot = '<span style="color:#888;font-size:16px;" title="Paused">\u23F8</span>';
-                            tooltip = 'Paused';
-                        } else if (health === 'rate_limited') {
-                            dot = '<span style="color:var(--red);font-size:16px;" title="Rate limited">&#9679;</span>';
-                            tooltip = 'Rate limited';
-                        } else if (health === 'no_tweets') {
-                            dot = '<span style="color:var(--yellow);font-size:16px;" title="No tweets found">&#9679;</span>';
-                            tooltip = 'No tweets found';
-                        } else if (count > 0) {
-                            dot = '<span style="color:var(--green);font-size:16px;" title="Working">&#9679;</span>';
-                            tooltip = 'Working';
-                        } else {
-                            dot = '<span style="color:#555;font-size:16px;" title="Waiting">&#9679;</span>';
-                            tooltip = 'Waiting';
-                        }
-                        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#232340;border-radius:6px;margin-bottom:4px;">' +
-                            '<span>' + dot + ' <b style="color:var(--accent);">@' + u + '</b> <span style="font-size:10px;color:#888;">' + tooltip + '</span></span>' +
-                            '<span style="color:#888;font-size:13px;">' + count + ' tweet' + (count !== 1 ? 's' : '') + '</span>' +
+                        const info = getStatusInfo(isPaused, health, count);
+                        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg4);border-radius:10px;margin-bottom:6px;border:1px solid var(--border2);">' +
+                            '<div style="display:flex;align-items:center;gap:8px;">' +
+                            '<span style="color:' + info.dot + ';font-size:18px;">' + info.icon + '</span>' +
+                            '<b style="color:var(--text2);font-size:14px;">@' + u + '</b>' +
+                            '<span style="font-size:11px;color:var(--text5);padding:2px 8px;border-radius:10px;background:var(--bg5);">' + info.label + '</span>' +
+                            '</div>' +
+                            '<span style="color:var(--text4);font-size:13px;font-weight:500;">' + count + ' tweet' + (count !== 1 ? 's' : '') + '</span>' +
                             '</div>';
                     }).join('');
                 }
