@@ -136,7 +136,7 @@ def post_to_discord(webhook_url, entry, username, color=None, tweet_type="tweet"
     if not tweet_id:
         return False
 
-    tweet_url = f"https://twitter.com/{username}/status/{tweet_id}"
+    tweet_url = f"https://x.com/{username}/status/{tweet_id}"
     pubdate = entry.get("published", "unknown")
     summary = entry.get("summary", "")
 
