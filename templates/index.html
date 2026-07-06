@@ -563,15 +563,17 @@
 
         async function updateRecent() {
             try {
-                const tweets = await getJSON('/recent');
+                const [tweets, status] = await Promise.all([getJSON('/recent'), getJSON('/status')]);
+                const colors = status.colors || {};
                 const container = document.getElementById('recentTweets');
                 if (tweets.length === 0) {
                     container.innerHTML = '<div style="color:var(--text6);text-align:center;padding:30px;">No tweets posted yet</div>';
                 } else {
                     container.innerHTML = tweets.map(function(t) {
-                        return '<div style="padding:10px 14px;background:var(--bg4);border-radius:10px;margin-bottom:6px;border-left:3px solid var(--accent);">' +
+                        const c = colors[t.username] || '#6c5ce7';
+                        return '<div style="padding:10px 14px;background:var(--bg4);border-radius:10px;margin-bottom:6px;border-left:3px solid ' + c + ';">' +
                             '<div style="font-size:11px;color:var(--text6);margin-bottom:4px;">' +
-                            '<b style="color:var(--accent);">@' + t.username + '</b> &middot; ' + t.time.split('.')[0] + '</div>' +
+                            '<b style="color:' + c + ';">@' + t.username + '</b> &middot; ' + t.time.split('.')[0] + '</div>' +
                             '<div style="font-size:13px;color:var(--text3);line-height:1.4;margin-bottom:6px;">' + escapeHtml(t.text) + '</div>' +
                             '<a href="' + t.url + '" target="_blank" style="font-size:12px;color:var(--blue);text-decoration:none;font-weight:500;">View on X</a>' +
                             '</div>';
