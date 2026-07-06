@@ -1,4 +1,4 @@
-# TweetVent v0.2.0
+# TweetVent v0.2.1
 
 Watch Twitter accounts and forward tweets to Discord in real-time.
 
