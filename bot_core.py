@@ -366,7 +366,8 @@ class DiscordBot:
             return
 
         accounts = cfg["twitter"].get("accounts", [])
-        webhook_url = cfg["discord"].get("webhook_url", "")
+        default_webhook = cfg["discord"].get("webhook_url", "")
+        per_account_webhooks = cfg.get("discord", {}).get("webhooks", {})
         instance = cfg["bot"].get("nitter_instance", "nitter.net")
         colors = cfg.get("colors", {})
         auth_token = cfg.get("auth", {}).get("auth_token")
@@ -379,6 +380,8 @@ class DiscordBot:
                 break
             try:
                 color = self._hex_to_int(colors.get(username.strip()))
+                # Use per-account webhook if set, otherwise default
+                webhook_url = per_account_webhooks.get(username.strip()) or default_webhook
                 # Get keyword filters for this account
                 filters_cfg = cfg.get("filters", {})
                 inc = filters_cfg.get("include", {}).get(username.strip(), "")

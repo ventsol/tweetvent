@@ -428,6 +428,10 @@
                             '</div>' +
                             '<input type="text" value="' + escapeHtml(exc) + '" placeholder="spam, ads..." class="filter-input exc" onchange="setFilters(\'' + u + '\',this.closest(\'.account-filters\').querySelector(\'.filter-input.inc\').value,this.value)">' +
                             '</div>' +
+                            '</div>' +
+                            '<div class="account-webhook" style="margin-top:6px;">' +
+                            '<span style="font-size:10px;color:#666;">Webhook:</span> ' +
+                            '<input type="text" value="' + escapeHtml(data.per_account_webhooks && data.per_account_webhooks[u] || '') + '" placeholder="(uses default)" class="filter-input" style="width:100%;font-size:10px;" onchange="setAccountWebhook(\'' + u + '\', this.value)">' +
                             '</div></div>';
                     }).join('');
                 }
@@ -514,6 +518,10 @@
         async function setNitter() {
             const i = document.getElementById('nitterInput').value.trim();
             await postJSON('/set_nitter', { instance: i });
+        }
+
+        async function setAccountWebhook(username, url) {
+            await postJSON('/set_account_webhook', { username, url });
         }
 
         async function setWebhook() {

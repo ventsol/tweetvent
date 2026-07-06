@@ -72,6 +72,7 @@ def status():
         "poll_interval": cfg["bot"].get("poll_interval_minutes", 5),
         "nitter_instance": cfg["bot"].get("nitter_instance", "nitter.net"),
         "webhook_set": bool(cfg["discord"].get("webhook_url", "")),
+        "per_account_webhooks": cfg.get("discord", {}).get("webhooks", {}),
         "auth_token": cfg.get("auth", {}).get("auth_token", ""),
         "ct0": cfg.get("auth", {}).get("ct0", ""),
         "cookie_healthy": _check_cookies(cfg),
@@ -232,6 +233,27 @@ def set_webhook():
 
     bot._log("Discord webhook updated")
     return jsonify({"success": True, "webhook_set": bool(url)})
+
+
+@app.route("/set_account_webhook", methods=["POST"])
+def set_account_webhook():
+    username = request.json.get("username", "").strip()
+    url = request.json.get("url", "").strip()
+
+    with config_lock:
+        cfg = load_config()
+        if "discord" not in cfg:
+            cfg["discord"] = {}
+        if "webhooks" not in cfg["discord"]:
+            cfg["discord"]["webhooks"] = {}
+        if url:
+            cfg["discord"]["webhooks"][username] = url
+        else:
+            cfg["discord"]["webhooks"].pop(username, None)
+        save_config(cfg)
+
+    bot._log(f"Webhook set for @{username}")
+    return jsonify({"success": True, "webhooks": cfg["discord"].get("webhooks", {})})
 
 
 @app.route("/set_nitter", methods=["POST"])

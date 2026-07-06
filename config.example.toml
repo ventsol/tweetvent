@@ -3,6 +3,10 @@ accounts = [ "username1", "username2",]
 
 [discord]
 webhook_url = "https://discord.com/api/webhooks/your_webhook_url_here"
+# Per-account webhooks (optional - uses default if not set)
+[discord.webhooks]
+# username1 = "https://discord.com/api/webhooks/channel_a/..."
+# username2 = "https://discord.com/api/webhooks/channel_b/..."
 
 [bot]
 poll_interval_minutes = 0.5
