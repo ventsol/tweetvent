@@ -72,10 +72,10 @@
 
         /* Main */
         .main {
-            flex: 1; padding: 32px; overflow-y: auto; height: 100vh;
+            flex: 1; padding: 32px; overflow-y: auto; height: 100vh; width: 100%;
         }
         .page { display: none; animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .page.active { display: block; }
+        .page.active { display: block; height: 100%; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Cards */
@@ -362,7 +362,7 @@
                         <button class="btn btn-small" onclick="pollAll()">Refresh</button>
                     </div>
                 </div>
-                <div id="logBox" style="background:var(--log-bg);border-radius:10px;padding:12px;font-family:'Consolas',monospace;font-size:12px;max-height:60vh;overflow-y:auto;line-height:1.7;border:1px solid var(--border);margin-top:12px;">
+                    <div id="logBox" style="background:var(--log-bg);border-radius:10px;padding:12px;font-family:'Consolas',monospace;font-size:12px;height:65vh;overflow-y:auto;line-height:1.7;border:1px solid var(--border);margin-top:12px;">
                     <div style="color:var(--text6);text-align:center;padding:30px;">Waiting for logs...</div>
                 </div>
             </div>
@@ -375,7 +375,7 @@
                     <h2>Recent Tweets</h2>
                     <button class="btn btn-small" onclick="clearRecent()">Clear</button>
                 </div>
-                <div id="recentTweets" style="margin-top:12px;">
+                <div id="recentTweets" style="margin-top:12px;height:65vh;overflow-y:auto;">
                     <div style="color:var(--text6);text-align:center;padding:30px;">No tweets posted yet</div>
                 </div>
             </div>
