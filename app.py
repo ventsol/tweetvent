@@ -76,6 +76,16 @@ async def logo():
     return FileResponse(Path(__file__).parent / "static" / "logo.svg", media_type="image/svg+xml")
 
 
+@app.get("/logo_only")
+async def logo_only():
+    """Serve the icon-only logo."""
+    from pathlib import Path
+    png_path = Path(__file__).parent / "static" / "logo_only.png"
+    if png_path.exists():
+        return FileResponse(png_path, media_type="image/png")
+    return FileResponse(Path(__file__).parent / "static" / "logo.svg", media_type="image/svg+xml")
+
+
 @app.get("/status")
 async def status():
     """Return bot status as JSON for the UI to poll."""
