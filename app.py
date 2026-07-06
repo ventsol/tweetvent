@@ -168,17 +168,18 @@ async def add_account(request: Request):
                     if latest_id is None or int(tid) > int(latest_id):
                         latest_id = tid
             if latest_id:
-                from bot_core import STATE_PATH
                 import json
+                from pathlib import Path
+                state_path = Path(__file__).parent / "last_tweet.json"
                 state = {}
-                if STATE_PATH.exists():
-                    with open(STATE_PATH) as f:
+                if state_path.exists():
+                    with open(state_path) as f:
                         data = json.load(f)
                         state = data.get("last_tweet_id", {})
                         if isinstance(state, str):
                             state = {}
                 state[username] = latest_id
-                with open(STATE_PATH, "w") as f:
+                with open(state_path, "w") as f:
                     json.dump({"last_tweet_id": state}, f)
                 bot._log(f"@{username}: Initial state set to tweet {latest_id}")
     except Exception as e:
@@ -253,7 +254,40 @@ async def toggle_pause(request: Request):
         paused = cfg.get("paused", [])
         if username in paused:
             paused.remove(username)
-            bot._log(f"@{username}: Resumed")
+            # Set state to latest tweet so missed tweets don't spam
+            try:
+                auth_token = cfg.get("auth", {}).get("auth_token", "")
+                ct0 = cfg.get("auth", {}).get("ct0", "")
+                from twitter_direct import fetch_tweets_direct
+                tweets = fetch_tweets_direct(username, auth_token, ct0)
+                if tweets:
+                    from urllib.parse import urlparse
+                    latest_id = None
+                    for t in tweets:
+                        path = urlparse(t.link).path
+                        parts = path.split("/")
+                        if "status" in parts:
+                            idx = parts.index("status") + 1
+                            tid = parts[idx].split("#")[0]
+                            if latest_id is None or int(tid) > int(latest_id):
+                                latest_id = tid
+                    if latest_id:
+                        import json
+                        from pathlib import Path
+                        state_path = Path(__file__).parent / "last_tweet.json"
+                        state = {}
+                        if state_path.exists():
+                            with open(state_path) as f:
+                                data = json.load(f)
+                                state = data.get("last_tweet_id", {})
+                                if isinstance(state, str):
+                                    state = {}
+                        state[username] = latest_id
+                        with open(state_path, "w") as f:
+                            json.dump({"last_tweet_id": state}, f)
+                        bot._log(f"@{username}: Resumed, latest tweet set to {latest_id}")
+            except Exception as e:
+                bot._log(f"@{username}: Resumed but could not set latest tweet ({e})")
         else:
             paused.append(username)
             bot._log(f"@{username}: Paused")
