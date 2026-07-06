@@ -148,6 +148,41 @@ async def add_account(request: Request):
         cfg["twitter"]["accounts"] = accounts
         save_config(cfg)
 
+    # Set initial state to latest tweet so old tweets don't get posted
+    try:
+        auth_token = cfg.get("auth", {}).get("auth_token", "")
+        ct0 = cfg.get("auth", {}).get("ct0", "")
+        from twitter_direct import fetch_tweets_direct
+        tweets = fetch_tweets_direct(username, auth_token, ct0)
+        if tweets:
+            import re
+            from urllib.parse import urlparse
+            latest_id = None
+            for t in tweets:
+                path = urlparse(t.link).path
+                parts = path.split("/")
+                if "status" in parts:
+                    idx = parts.index("status") + 1
+                    tid = parts[idx].split("#")[0]
+                    if latest_id is None or int(tid) > int(latest_id):
+                        latest_id = tid
+            if latest_id:
+                from bot_core import STATE_PATH
+                import json
+                state = {}
+                if STATE_PATH.exists():
+                    with open(STATE_PATH) as f:
+                        data = json.load(f)
+                        state = data.get("last_tweet_id", {})
+                        if isinstance(state, str):
+                            state = {}
+                state[username] = latest_id
+                with open(STATE_PATH, "w") as f:
+                    json.dump({"last_tweet_id": state}, f)
+                bot._log(f"@{username}: Initial state set to tweet {latest_id}")
+    except Exception as e:
+        bot._log(f"@{username}: Could not set initial state ({e}) - may post old tweets on first check")
+
     bot._log(f"Added @{username}")
     return JSONResponse({"success": True, "accounts": accounts})
 
