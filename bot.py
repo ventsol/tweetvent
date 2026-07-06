@@ -173,7 +173,7 @@ def post_to_discord(webhook_url, entry, username, color=None, tweet_type="tweet"
         "description": tweet_text,
         "color": color if color else 1942002,
         "url": tweet_url,
-        "footer": {"text": footer_text},
+        "footer": {"text": footer_text, "icon_url": "https://raw.githubusercontent.com/ventsol/tweetvent/master/static/logo.png"},
     }
 
     # Add external links as a compact field

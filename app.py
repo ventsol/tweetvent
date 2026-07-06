@@ -70,6 +70,9 @@ async def index(request: Request):
 async def logo():
     """Serve the TweetVent logo."""
     from pathlib import Path
+    png_path = Path(__file__).parent / "static" / "logo.png"
+    if png_path.exists():
+        return FileResponse(png_path, media_type="image/png")
     return FileResponse(Path(__file__).parent / "static" / "logo.svg", media_type="image/svg+xml")
 
 
