@@ -449,7 +449,10 @@ class DiscordBot:
 
     def get_recent_tweets(self, n=20):
         with self._lock:
-            return list(self.recent_tweets)[:n]
+            return [
+                {"username": u, "url": url, "text": txt[:100], "time": ts}
+                for u, url, txt, ts in list(self.recent_tweets)[:n]
+            ]
 
     def clear_recent(self):
         """Clear the recent tweets list."""
