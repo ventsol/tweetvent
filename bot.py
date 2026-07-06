@@ -38,7 +38,7 @@ def load_config():
 
 def fetch_rss_feed(username, instance="nitter.net"):
     """Fetch the RSS feed for a Twitter user from a Nitter instance."""
-    url = f"https://{instance}/{username}/rss"
+    url = f"https://{instance}/{username}/rss?_t={int(time.time())}"
     feed = feedparser.parse(url)
 
     if feed.bozo and not feed.entries:

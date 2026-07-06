@@ -2,6 +2,8 @@
 Twitter fetcher - uses auth tokens (Playwright) first, then Nitter RSS fallback.
 """
 
+import time
+
 import feedparser
 
 
@@ -48,7 +50,7 @@ def _try_playwright(username, auth_token, ct0):
             ])
 
             page = context.new_page()
-            page.goto(f"https://x.com/{username}", wait_until="domcontentloaded", timeout=15000)
+            page.goto(f"https://x.com/{username}?_t={int(time.time())}", wait_until="domcontentloaded", timeout=15000)
 
             try:
                 page.wait_for_selector('article[data-testid="tweet"]', timeout=6000)
@@ -155,7 +157,7 @@ def _nitter_fetch(username):
     instances = ["nitter.net", "xcancel.com", "nitter.tiekoetter.com"]
     for instance in instances:
         try:
-            url = f"https://{instance}/{username}/rss"
+            url = f"https://{instance}/{username}/rss?_t={int(time.time())}"
             feed = feedparser.parse(url)
             if feed.bozo and not feed.entries:
                 continue

@@ -294,7 +294,7 @@ class DiscordBot:
         
         # Fall back to Nitter RSS if direct fetch didn't work
         if tweets is None:
-            url = f"https://{instance}/{username}/rss"
+            url = f"https://{instance}/{username}/rss?_t={int(time.time())}"
             feed = feedparser.parse(url)
             if feed.bozo and not feed.entries:
                 self._log(f"@{username}: RSS feed failed — instance may be down")
