@@ -1,26 +1,44 @@
 """
-TweetVent v0.1.7 — Web Dashboard
+TweetVent v0.1.7 — Web Dashboard (FastAPI)
 Run with: python app.py
 Then open http://localhost:5000 in your browser.
 """
 
 import threading
 
-import logging
-from flask import Flask, jsonify, render_template, request
-
-# Silence Flask's request logs (only show errors/warnings)
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse, HTMLResponse
+from pathlib import Path
+from starlette.templating import Jinja2Templates
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from bot_core import DiscordBot, load_config, save_config
 
-app = Flask(__name__)
+# Create FastAPI app
+app = FastAPI(title="TweetVent", version="0.1.7")
+
+# Template setup
+templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
 # Create the bot instance (shared across requests)
 bot = DiscordBot()
 config_lock = threading.Lock()
 
+
+# ── Middleware: No-cache headers ─────────────────────────────────────────────
+
+class NoCacheMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
+
+app.add_middleware(NoCacheMiddleware)
+
+
+# ── Helpers ──────────────────────────────────────────────────────────────────
 
 def _check_cookies(cfg):
     """Test if Twitter auth cookies are still valid."""
@@ -41,26 +59,17 @@ def _check_cookies(cfg):
 # ── Web Routes ──────────────────────────────────────────────────────────────
 
 
-@app.after_request
-def add_no_cache(response):
-    """Prevent browser caching of API responses."""
-    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    return response
-
-
-@app.route("/")
-def index():
+@app.get("/")
+async def index(request: Request):
     """Serve the dashboard page."""
-    return render_template("index.html")
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
-@app.route("/status")
-def status():
+@app.get("/status")
+async def status():
     """Return bot status as JSON for the UI to poll."""
     cfg = load_config()
-    return jsonify({
+    return JSONResponse({
         "status": bot.status,
         "is_running": bot.is_running,
         "last_check": bot.last_check_time,
@@ -81,61 +90,65 @@ def status():
     })
 
 
-@app.route("/logs")
-def logs():
+@app.get("/logs")
+async def logs(n: int = 30):
     """Return recent logs."""
-    n = request.args.get("n", 30, type=int)
-    return jsonify(bot.get_logs(n))
+    return JSONResponse(bot.get_logs(n))
 
 
-@app.route("/recent")
-def recent():
-    """Return recent tweets."""
-    n = request.args.get("n", 20, type=int)
-    return jsonify([
-        {"username": u, "url": url, "text": t[:100], "time": ts}
-        for u, url, t, ts in bot.get_recent_tweets(n)
-    ])
+@app.get("/recent")
+async def recent():
+    """Return recent tweets posted."""
+    return JSONResponse(bot.get_recent_tweets())
 
 
-# ── Actions ─────────────────────────────────────────────────────────────────
-
-
-@app.route("/start", methods=["POST"])
-def start_bot():
+@app.post("/start")
+async def start():
     bot.start()
-    return jsonify({"success": True, "status": bot.status})
+    return JSONResponse({"success": True})
 
 
-@app.route("/stop", methods=["POST"])
-def stop_bot():
+@app.post("/stop")
+async def stop():
     bot.stop()
-    return jsonify({"success": True, "status": bot.status})
+    return JSONResponse({"success": True})
 
 
-@app.route("/add_account", methods=["POST"])
-def add_account():
-    username = request.json.get("username", "").strip().lower()
+@app.post("/check_now")
+async def check_now():
+    """Trigger an immediate check."""
+    def _check():
+        bot._log("Manual check triggered via Check Now")
+        bot.run_once()
+    t = threading.Thread(target=_check, daemon=True)
+    t.start()
+    return JSONResponse({"success": True, "message": "Check started"})
+
+
+@app.post("/add_account")
+async def add_account(request: Request):
+    data = await request.json()
+    username = data.get("username", "").strip()
     if not username:
-        return jsonify({"success": False, "error": "No username provided"}), 400
+        return JSONResponse({"success": False, "error": "Username is required"})
 
     with config_lock:
         cfg = load_config()
-        accounts = cfg["twitter"].setdefault("accounts", [])
-        if username in [a.lower() for a in accounts]:
-            return jsonify({"success": False, "error": f"@{username} is already being watched"}), 400
+        accounts = cfg["twitter"].get("accounts", [])
+        if any(a.lower() == username.lower() for a in accounts):
+            return JSONResponse({"success": False, "error": "Account already added"})
         accounts.append(username)
+        cfg["twitter"]["accounts"] = accounts
         save_config(cfg)
 
-    bot._log(f"Added @{username} to watch list")
-    return jsonify({"success": True, "accounts": cfg["twitter"]["accounts"]})
+    bot._log(f"Added @{username}")
+    return JSONResponse({"success": True, "accounts": accounts})
 
 
-@app.route("/remove_account", methods=["POST"])
-def remove_account():
-    username = request.json.get("username", "").strip().lower()
-    if not username:
-        return jsonify({"success": False, "error": "No username provided"}), 400
+@app.post("/remove_account")
+async def remove_account(request: Request):
+    data = await request.json()
+    username = data.get("username", "").strip().lower()
 
     with config_lock:
         cfg = load_config()
@@ -143,29 +156,33 @@ def remove_account():
         cfg["twitter"]["accounts"] = [a for a in accounts if a.lower() != username]
         save_config(cfg)
 
-    bot._log(f"Removed @{username} from watch list")
-    return jsonify({"success": True, "accounts": cfg["twitter"]["accounts"]})
+    bot._log(f"Removed @{username}")
+    return JSONResponse({"success": True, "accounts": cfg["twitter"]["accounts"]})
 
 
-@app.route("/set_interval", methods=["POST"])
-def set_interval():
-    minutes = request.json.get("minutes", 5)
-    minutes = max(1, min(60, int(minutes)))
+@app.post("/set_color")
+async def set_color(request: Request):
+    data = await request.json()
+    username = data.get("username", "")
+    color = data.get("color", "")
 
     with config_lock:
         cfg = load_config()
-        cfg["bot"]["poll_interval_minutes"] = minutes
+        if "colors" not in cfg:
+            cfg["colors"] = {}
+        cfg["colors"][username] = color
         save_config(cfg)
 
-    bot._log(f"Polling interval changed to {minutes} minutes")
-    return jsonify({"success": True, "interval": minutes})
+    bot._log(f"Color updated for @{username}")
+    return JSONResponse({"success": True, "colors": cfg.get("colors", {})})
 
 
-@app.route("/set_filters", methods=["POST"])
-def set_filters():
-    username = request.json.get("username", "").strip()
-    include = request.json.get("include", "")
-    exclude = request.json.get("exclude", "")
+@app.post("/set_filters")
+async def set_filters(request: Request):
+    data = await request.json()
+    username = data.get("username", "")
+    include = data.get("include", "")
+    exclude = data.get("exclude", "")
 
     with config_lock:
         cfg = load_config()
@@ -180,32 +197,42 @@ def set_filters():
         save_config(cfg)
 
     bot._log(f"Filters updated for @{username}")
-    return jsonify({"success": True, "filters": cfg.get("filters", {})})
+    return JSONResponse({"success": True, "filters": cfg.get("filters", {})})
 
 
-@app.route("/set_color", methods=["POST"])
-def set_color():
-    username = request.json.get("username", "").strip()
-    color = request.json.get("color", "").strip()
+@app.post("/set_interval")
+async def set_interval(request: Request):
+    data = await request.json()
+    minutes = float(data.get("minutes", 5))
 
     with config_lock:
         cfg = load_config()
-        if "colors" not in cfg:
-            cfg["colors"] = {}
-        if color:
-            cfg["colors"][username] = color
-        else:
-            cfg["colors"].pop(username, None)
+        cfg["bot"]["poll_interval_minutes"] = minutes
         save_config(cfg)
 
-    bot._log(f"Color updated for @{username}")
-    return jsonify({"success": True, "colors": cfg.get("colors", {})})
+    bot._log(f"Polling interval changed to {minutes} minutes")
+    return JSONResponse({"success": True})
 
 
-@app.route("/set_cookies", methods=["POST"])
-def set_cookies():
-    auth_token = request.json.get("auth_token", "").strip()
-    ct0 = request.json.get("ct0", "").strip()
+@app.post("/set_nitter")
+async def set_nitter(request: Request):
+    data = await request.json()
+    instance = data.get("instance", "nitter.net").strip().lower()
+
+    with config_lock:
+        cfg = load_config()
+        cfg["bot"]["nitter_instance"] = instance
+        save_config(cfg)
+
+    bot._log(f"Nitter instance changed to {instance}")
+    return JSONResponse({"success": True, "instance": instance})
+
+
+@app.post("/set_cookies")
+async def set_cookies(request: Request):
+    data = await request.json()
+    auth_token = data.get("auth_token", "").strip()
+    ct0 = data.get("ct0", "").strip()
 
     with config_lock:
         cfg = load_config()
@@ -217,12 +244,13 @@ def set_cookies():
 
     healthy = _check_cookies(cfg)
     bot._log(f"Twitter cookies updated (valid: {healthy})")
-    return jsonify({"success": True, "cookie_healthy": healthy})
+    return JSONResponse({"success": True, "cookie_healthy": healthy})
 
 
-@app.route("/set_webhook", methods=["POST"])
-def set_webhook():
-    url = request.json.get("url", "").strip()
+@app.post("/set_webhook")
+async def set_webhook(request: Request):
+    data = await request.json()
+    url = data.get("url", "").strip()
 
     with config_lock:
         cfg = load_config()
@@ -232,13 +260,14 @@ def set_webhook():
         save_config(cfg)
 
     bot._log("Discord webhook updated")
-    return jsonify({"success": True, "webhook_set": bool(url)})
+    return JSONResponse({"success": True, "webhook_set": bool(url)})
 
 
-@app.route("/set_account_webhook", methods=["POST"])
-def set_account_webhook():
-    username = request.json.get("username", "").strip()
-    url = request.json.get("url", "").strip()
+@app.post("/set_account_webhook")
+async def set_account_webhook(request: Request):
+    data = await request.json()
+    username = data.get("username", "").strip()
+    url = data.get("url", "").strip()
 
     with config_lock:
         cfg = load_config()
@@ -253,43 +282,20 @@ def set_account_webhook():
         save_config(cfg)
 
     bot._log(f"Webhook set for @{username}")
-    return jsonify({"success": True, "webhooks": cfg["discord"].get("webhooks", {})})
-
-
-@app.route("/set_nitter", methods=["POST"])
-def set_nitter():
-    instance = request.json.get("instance", "nitter.net").strip().lower()
-
-    with config_lock:
-        cfg = load_config()
-        cfg["bot"]["nitter_instance"] = instance
-        save_config(cfg)
-
-    bot._log(f"Nitter instance changed to {instance}")
-    return jsonify({"success": True, "instance": instance})
-
-
-@app.route("/check_now", methods=["POST"])
-def check_now():
-    """Trigger an immediate check (runs in a background thread)."""
-    def _check():
-        bot._log("Manual check triggered via Check Now")
-        bot.run_once()
-    t = threading.Thread(target=_check, daemon=True)
-    t.start()
-    return jsonify({"success": True, "message": "Check started"})
+    return JSONResponse({"success": True, "webhooks": cfg["discord"].get("webhooks", {})})
 
 
 # ── Main ────────────────────────────────────────────────────────────────────
 
 
 if __name__ == "__main__":
+    import uvicorn
     print("=" * 50)
     print("  TweetVent v0.1.7")
-    print("  Web Dashboard")
+    print("  Web Dashboard (FastAPI)")
     print("=" * 50)
     print()
     print("  Open http://localhost:5000 in your browser")
     print("  Press Ctrl+C to stop")
     print()
-    app.run(host="0.0.0.0", port=5000, debug=False, threaded=True)
+    uvicorn.run(app, host="0.0.0.0", port=5000, log_level="error")
