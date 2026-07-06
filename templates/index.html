@@ -355,14 +355,16 @@
         <!-- Logs Page -->
         <div class="page" id="page-logs">
             <div class="card">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                    <h2 style="margin:0;">Logs</h2>
-                    <div style="font-size:11px;color:#666;">
-                        Auto-refresh <span id="lastUpdated">-</span>
-                        <button class="btn btn-small" onclick="pollAll();return false;" style="margin-left:6px;">Refresh</button>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <h2>Logs</h2>
+                    <div style="font-size:11px;color:var(--text6);display:flex;align-items:center;gap:8px;">
+                        <span id="lastUpdated">-</span>
+                        <button class="btn btn-small" onclick="pollAll()">Refresh</button>
                     </div>
                 </div>
-                <div class="log-box" id="logBox"><div>Waiting for logs...</div></div>
+                <div id="logBox" style="background:var(--log-bg);border-radius:10px;padding:12px;font-family:'Consolas',monospace;font-size:12px;max-height:60vh;overflow-y:auto;line-height:1.7;border:1px solid var(--border);margin-top:12px;">
+                    <div style="color:var(--text6);text-align:center;padding:30px;">Waiting for logs...</div>
+                </div>
             </div>
         </div>
 
@@ -370,10 +372,12 @@
         <div class="page" id="page-recent">
             <div class="card">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <h2>Recent Tweets Posted</h2>
+                    <h2>Recent Tweets</h2>
                     <button class="btn btn-small" onclick="clearRecent()">Clear</button>
                 </div>
-                <div id="recentTweets"><div class="empty-state">No tweets posted yet</div></div>
+                <div id="recentTweets" style="margin-top:12px;">
+                    <div style="color:var(--text6);text-align:center;padding:30px;">No tweets posted yet</div>
+                </div>
             </div>
         </div>
 
@@ -551,8 +555,12 @@
             try {
                 const logs = await getJSON('/logs');
                 const box = document.getElementById('logBox');
-                box.innerHTML = logs.map(l => '<div>' + l + '</div>').join('');
-                box.scrollTop = box.scrollHeight;
+                if (logs.length === 0) {
+                    box.innerHTML = '<div style="color:var(--text6);text-align:center;padding:30px;">No logs yet</div>';
+                } else {
+                    box.innerHTML = logs.map(l => '<div style="padding:3px 6px;color:var(--text5);">' + l + '</div>').join('');
+                    box.scrollTop = box.scrollHeight;
+                }
             } catch(e) {}
         }
 
@@ -561,15 +569,16 @@
                 const tweets = await getJSON('/recent');
                 const container = document.getElementById('recentTweets');
                 if (tweets.length === 0) {
-                    container.innerHTML = '<div class="empty-state">No tweets posted yet</div>';
+                    container.innerHTML = '<div style="color:var(--text6);text-align:center;padding:30px;">No tweets posted yet</div>';
                 } else {
-                    container.innerHTML = tweets.map(t =>
-                        '<div class="tweet-item">' +
-                        '<div class="meta"><span class="user">@' + t.username + '</span> &middot; ' + t.time + '</div>' +
-                        '<div class="text">' + escapeHtml(t.text) + '</div>' +
-                        '<a href="' + t.url + '" target="_blank">View on X</a>' +
-                        '</div>'
-                    ).join('');
+                    container.innerHTML = tweets.map(function(t) {
+                        return '<div style="padding:10px 14px;background:var(--bg4);border-radius:10px;margin-bottom:6px;border-left:3px solid var(--accent);">' +
+                            '<div style="font-size:11px;color:var(--text6);margin-bottom:4px;">' +
+                            '<b style="color:var(--accent);">@' + t.username + '</b> &middot; ' + t.time.split('.')[0] + '</div>' +
+                            '<div style="font-size:13px;color:var(--text3);line-height:1.4;margin-bottom:6px;">' + escapeHtml(t.text) + '</div>' +
+                            '<a href="' + t.url + '" target="_blank" style="font-size:12px;color:var(--blue);text-decoration:none;font-weight:500;">View on X</a>' +
+                            '</div>';
+                    }).join('');
                 }
             } catch(e) {}
         }
