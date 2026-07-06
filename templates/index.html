@@ -7,8 +7,8 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0f0f1a;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #0a0a14;
             color: #e0e0e0;
             min-height: 100vh;
             display: flex;
@@ -16,79 +16,94 @@
 
         /* Sidebar */
         .sidebar {
-            width: 200px; min-height: 100vh; background: #12121f;
-            border-right: 1px solid #2a2a3a; padding: 0; flex-shrink: 0;
+            width: 220px; min-height: 100vh; background: #0d0d1a;
+            border-right: 1px solid #1e1e32; padding: 0; flex-shrink: 0;
             display: flex; flex-direction: column;
         }
         .sidebar-header {
-            padding: 20px 16px; border-bottom: 1px solid #2a2a3a;
-            font-size: 15px; font-weight: 700; color: #1da1f2;
+            padding: 24px 20px; border-bottom: 1px solid #1e1e32;
+            font-size: 18px; font-weight: 800; color: #4a9eff;
+            letter-spacing: -0.3px;
         }
-        .sidebar-header span { color: #fff; }
+        .sidebar-header span { color: #8888aa; font-weight: 400; }
+        .sidebar-version { display:block; font-size: 10px; color: #555; font-weight: 400; margin-top: 2px; letter-spacing: 0; }
         .nav-item {
-            padding: 12px 16px; cursor: pointer; font-size: 13px;
-            color: #888; border-left: 3px solid transparent;
-            display: flex; align-items: center; gap: 8px;
-            transition: all 0.15s;
+            padding: 14px 20px; cursor: pointer; font-size: 14px;
+            color: #666; border-left: 3px solid transparent;
+            display: flex; align-items: center; gap: 10px;
+            transition: all 0.2s ease;
         }
-        .nav-item:hover { color: #ccc; background: #1a1a2e; }
-        .nav-item.active { color: #1da1f2; border-left-color: #1da1f2; background: #1a1a2e; font-weight: 600; }
-        .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+        .nav-item:hover { color: #aaa; background: #12121f; }
+        .nav-item.active { color: #4a9eff; border-left-color: #4a9eff; background: #12121f; font-weight: 600; }
+        .nav-item .icon { font-size: 18px; width: 24px; text-align: center; opacity: 0.7; }
+        .nav-item.active .icon { opacity: 1; }
 
         /* Main */
         .main {
-            flex: 1; padding: 24px; overflow-y: auto; max-height: 100vh;
+            flex: 1; padding: 28px; overflow-y: auto; max-height: 100vh;
         }
-        .page { display: none; }
+        .page { display: none; animation: fadeIn 0.2s ease; }
         .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Cards */
         .card {
-            background: #1a1a2e; border-radius: 12px; padding: 20px;
-            margin-bottom: 16px; border: 1px solid #2a2a3a;
+            background: #14142a; border-radius: 16px; padding: 24px;
+            margin-bottom: 20px; border: 1px solid #1e1e35;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            transition: border-color 0.2s;
         }
-        .card h2 { font-size: 14px; margin-bottom: 14px; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; }
+        .card:hover { border-color: #2a2a45; }
+        .card h2 { font-size: 13px; margin-bottom: 16px; color: #666; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
 
-        /* Controls */
+        /* Buttons */
         .btn {
-            padding: 7px 18px; border: none; border-radius: 8px; cursor: pointer;
-            font-size: 13px; font-weight: 600; transition: all 0.2s;
+            padding: 8px 20px; border: none; border-radius: 10px; cursor: pointer;
+            font-size: 13px; font-weight: 600; transition: all 0.2s ease;
+            display: inline-flex; align-items: center; gap: 6px;
+            outline: none;
         }
-        .btn:hover { transform: translateY(-1px); opacity: 0.9; }
-        .btn-start { background: #22c55e; color: #000; }
-        .btn-stop { background: #ef4444; color: #fff; }
-        .btn-primary { background: #1da1f2; color: #fff; }
-        .btn-danger { background: #dc2626; color: #fff; padding: 4px 10px; font-size: 12px; }
-        .btn-small { background: #2a2a3a; color: #ccc; padding: 4px 12px; font-size: 12px; }
-        .btn-small:hover { background: #3a3a4a; }
-        .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .btn:active { transform: translateY(0); }
+        .btn-start { background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; }
+        .btn-stop { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; }
+        .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; }
+        .btn-danger { background: linear-gradient(135deg, #f87171, #ef4444); color: #fff; padding: 6px 14px; font-size: 12px; }
+        .btn-small { background: #1e1e35; color: #999; padding: 6px 14px; font-size: 12px; border: 1px solid #2a2a45; }
+        .btn-small:hover { background: #2a2a45; color: #fff; border-color: #3a3a55; }
+        .controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 
         /* Status grid */
         .info-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
         }
         .info-item {
-            background: #232340; padding: 12px; border-radius: 8px;
+            background: #1a1a30; padding: 14px; border-radius: 12px;
+            border: 1px solid #22223a; transition: border-color 0.2s;
         }
-        .info-item .label { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.3px; }
-        .info-item .value { font-size: 14px; color: #fff; margin-top: 3px; }
+        .info-item:hover { border-color: #33335a; }
+        .info-item .label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+        .info-item .value { font-size: 15px; color: #eee; margin-top: 4px; font-weight: 500; }
         .status-badge {
-            display:inline-block; padding: 3px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;
+            display:inline-block; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 700;
+            letter-spacing: 0.3px;
         }
-        .status-running { background: #1a3a2a; color: #4ade80; }
-        .status-stopped { background: #3a1a1a; color: #f87171; }
-        .status-stopping { background: #3a3a1a; color: #fbbf24; }
+        .status-running { background: rgba(34,197,94,0.15); color: #4ade80; }
+        .status-stopped { background: rgba(239,68,68,0.15); color: #f87171; }
+        .status-stopping { background: rgba(251,191,36,0.15); color: #fbbf24; }
 
         /* Accounts */
         .account-item {
-            background: #232340; border-radius: 8px; margin-bottom: 6px; padding: 10px 12px;
+            background: #1a1a30; border-radius: 12px; margin-bottom: 8px; padding: 14px 16px;
+            border: 1px solid #22223a; transition: border-color 0.2s;
         }
+        .account-item:hover { border-color: #33335a; }
         .account-header {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
         }
-        .account-info { display: flex; align-items: center; gap: 8px; }
-        .name-badge { font-weight: 700; font-size: 12px; padding: 2px 8px; border-radius: 10px; }
-        .color-picker { width: 22px; height: 18px; border: none; border-radius: 3px; cursor: pointer; background: transparent; padding: 0; }
+        .account-info { display: flex; align-items: center; gap: 10px; }
+        .name-badge { font-weight: 700; font-size: 13px; padding: 3px 10px; border-radius: 20px; letter-spacing: -0.2px; }
+        .color-picker { width: 24px; height: 20px; border: none; border-radius: 5px; cursor: pointer; background: transparent; padding: 0; }
         .account-filters { display: flex; gap: 8px; }
         .filter-group { flex: 1; display: flex; flex-direction: column; gap: 2px; }
         .filter-header { display: flex; align-items: center; gap: 4px; }
@@ -100,77 +115,86 @@
         .filter-label.exc { color: #f87171; }
         .filter-count { font-size: 10px; color: #555; margin-left: auto; }
         .filter-input {
-            width: 100%; padding: 5px 8px; border-radius: 5px; border: 1px solid #2a2a3a;
-            background: #1a1a2e; color: #ccc; font-size: 11px; outline: none; box-sizing: border-box;
+            width: 100%; padding: 6px 10px; border-radius: 8px; border: 1px solid #2a2a45;
+            background: #0d0d1a; color: #ccc; font-size: 12px; outline: none; box-sizing: border-box;
+            transition: border-color 0.2s, background 0.2s;
         }
         .filter-input.inc { border-left: 3px solid #4ade80; }
         .filter-input.exc { border-left: 3px solid #f87171; }
-        .filter-input:focus { border-color: #1da1f2; }
+        .filter-input:focus { border-color: #4a9eff; background: #111125; }
         .filter-input.inc:focus { border-color: #4ade80; }
         .filter-input.exc:focus { border-color: #f87171; }
-        .add-account { display: flex; gap: 6px; margin-top: 8px; }
+        .add-account { display: flex; gap: 8px; margin-top: 12px; }
         .add-account input {
-            flex: 1; padding: 6px 12px; border-radius: 6px; border: 1px solid #2a2a3a;
-            background: #232340; color: #fff; font-size: 13px; outline: none;
+            flex: 1; padding: 8px 16px; border-radius: 10px; border: 1px solid #2a2a45;
+            background: #1a1a30; color: #fff; font-size: 14px; outline: none;
+            transition: border-color 0.2s;
         }
-        .add-account input:focus { border-color: #1da1f2; }
+        .add-account input:focus { border-color: #4a9eff; }
+        .add-account input::placeholder { color: #555; }
 
         /* Settings rows */
         .settings-row {
-            display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 8px;
+            display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 12px;
         }
-        .settings-row label { font-size: 12px; color: #999; min-width: 100px; }
+        .settings-row label { font-size: 13px; color: #888; min-width: 100px; font-weight: 500; }
         .settings-row input {
-            padding: 5px 8px; border-radius: 5px; border: 1px solid #2a2a3a;
-            background: #232340; color: #fff; font-size: 12px; outline: none;
+            padding: 6px 12px; border-radius: 8px; border: 1px solid #2a2a45;
+            background: #1a1a30; color: #fff; font-size: 13px; outline: none;
+            transition: border-color 0.2s;
         }
-        .settings-row input:focus { border-color: #1da1f2; }
+        .settings-row input:focus { border-color: #4a9eff; }
 
         /* Logs */
         .log-box {
-            background: #0a0a14; border-radius: 8px; padding: 10px;
-            font-family: 'Courier New', monospace; font-size: 11px;
-            max-height: 280px; overflow-y: auto; line-height: 1.5;
+            background: #070714; border-radius: 10px; padding: 12px;
+            font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; font-size: 12px;
+            max-height: 300px; overflow-y: auto; line-height: 1.6;
+            border: 1px solid #1a1a30;
         }
-        .log-box div { color: #888; }
+        .log-box div { color: #777; padding: 2px 0; }
+        .log-box div:nth-child(odd) { background: rgba(255,255,255,0.02); border-radius: 3px; }
 
         /* Tweets */
         .tweet-item {
-            padding: 8px 12px; background: #232340; border-radius: 6px; margin-bottom: 4px;
-            border-left: 3px solid #1da1f2;
+            padding: 10px 14px; background: #1a1a30; border-radius: 8px; margin-bottom: 6px;
+            border-left: 3px solid #4a9eff; transition: border-color 0.2s, background 0.2s;
         }
-        .tweet-item .meta { font-size: 10px; color: #666; }
-        .tweet-item .user { color: #1da1f2; font-weight: 600; }
-        .tweet-item .text { margin-top: 3px; color: #ccc; font-size: 12px; }
-        .tweet-item a { color: #60a5fa; text-decoration: none; font-size: 11px; }
+        .tweet-item:hover { border-color: #6bb3ff; background: #1e1e35; }
+        .tweet-item .meta { font-size: 11px; color: #555; }
+        .tweet-item .user { color: #4a9eff; font-weight: 600; }
+        .tweet-item .text { margin-top: 4px; color: #ccc; font-size: 13px; line-height: 1.4; }
+        .tweet-item a { color: #60a5fa; text-decoration: none; font-size: 12px; font-weight: 500; }
         .tweet-item a:hover { text-decoration: underline; }
 
-        .empty-state { color: #555; text-align: center; padding: 14px; font-size: 13px; }
+        .empty-state { color: #555; text-align: center; padding: 20px; font-size: 14px; }
 
         /* Cookie instructions table */
         .cookie-table { margin: 4px 0; border-collapse: collapse; font-size: 11px; }
         .cookie-table th, .cookie-table td { padding: 4px 8px; border: 1px solid #2a2a3a; text-align: left; }
 
         /* Scrollbar */
-        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0a0a14; }
-        ::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: #2a2a45; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3a3a55; }
 
         @media (max-width: 700px) {
             body { flex-direction: column; }
-            .sidebar { width: 100%; min-height: auto; flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid #2a2a3a; }
+            .sidebar { width: 100%; min-height: auto; flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid #1e1e32; padding: 0; }
             .sidebar-header { display: none; }
-            .nav-item { border-left: none; border-bottom: 3px solid transparent; white-space: nowrap; padding: 10px 12px; }
-            .nav-item.active { border-left: none; border-bottom-color: #1da1f2; }
+            .nav-item { border-left: none; border-bottom: 3px solid transparent; white-space: nowrap; padding: 12px 14px; font-size: 13px; }
+            .nav-item.active { border-left: none; border-bottom-color: #4a9eff; }
             .main { max-height: none; padding: 16px; }
             .info-grid { grid-template-columns: 1fr; }
+            .account-filters { flex-direction: column; }
         }
     </style>
 </head>
 <body>
     <!-- Sidebar -->
     <div class="sidebar">
-        <div class="sidebar-header">TweetVent <span style="color:#888;font-size:10px;">v0.1.7</span></div>
+        <div class="sidebar-header">TweetVent <span>//</span><span class="sidebar-version">v0.1.7</span></div>
         <div class="nav-item active" onclick="showPage('dashboard')"><span class="icon">&#9776;</span> Dashboard</div>
         <div class="nav-item" onclick="showPage('accounts')"><span class="icon">@</span> Accounts</div>
         <div class="nav-item" onclick="showPage('settings')"><span class="icon">&#9881;</span> Settings</div>
