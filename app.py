@@ -7,6 +7,7 @@ Then open http://localhost:5000 in your browser.
 import threading
 
 from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse
 from fastapi.responses import JSONResponse, HTMLResponse
 from pathlib import Path
 from starlette.templating import Jinja2Templates
@@ -63,6 +64,13 @@ def _check_cookies(cfg):
 async def index(request: Request):
     """Serve the dashboard page."""
     return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.get("/logo")
+async def logo():
+    """Serve the TweetVent logo."""
+    from pathlib import Path
+    return FileResponse(Path(__file__).parent / "static" / "logo.svg", media_type="image/svg+xml")
 
 
 @app.get("/status")
