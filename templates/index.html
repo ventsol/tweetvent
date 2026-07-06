@@ -291,7 +291,10 @@
         <!-- Recent Page -->
         <div class="page" id="page-recent">
             <div class="card">
-                <h2>Recent Tweets Posted</h2>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <h2>Recent Tweets Posted</h2>
+                    <button class="btn btn-small" onclick="clearRecent()">Clear</button>
+                </div>
                 <div id="recentTweets"><div class="empty-state">No tweets posted yet</div></div>
             </div>
         </div>
@@ -522,6 +525,12 @@
 
         async function setAccountWebhook(username, url) {
             await postJSON('/set_account_webhook', { username, url });
+        }
+
+        async function clearRecent() {
+            if (!confirm('Clear recent tweets list?')) return;
+            await postJSON('/clear_recent');
+            document.getElementById('recentTweets').innerHTML = '<div class="empty-state">No tweets posted yet</div>';
         }
 
         async function setWebhook() {

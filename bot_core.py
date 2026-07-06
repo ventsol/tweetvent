@@ -446,3 +446,15 @@ class DiscordBot:
     def get_recent_tweets(self, n=20):
         with self._lock:
             return list(self.recent_tweets)[:n]
+
+    def clear_recent(self):
+        """Clear the recent tweets list."""
+        with self._lock:
+            self.recent_tweets.clear()
+            try:
+                import json
+                from pathlib import Path
+                recent_file = Path(__file__).parent / "recent_tweets.json"
+                recent_file.write_text("[]")
+            except OSError:
+                pass

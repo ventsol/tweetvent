@@ -102,6 +102,13 @@ async def recent():
     return JSONResponse(bot.get_recent_tweets())
 
 
+@app.post("/clear_recent")
+async def clear_recent():
+    """Clear the recent tweets list."""
+    bot.clear_recent()
+    return JSONResponse({"success": True})
+
+
 @app.post("/start")
 async def start():
     bot.start()
